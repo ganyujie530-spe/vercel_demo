@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C语言缓冲区清理可视化演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .active-line { background-color: rgba(59, 130, 246, 0.15); border-left: 4px solid #3b82f6; }
+        .highlight-code { background-color: #fef08a; color: #854d0e; padding: 0 4px; border-radius: 4px; font-weight: bold; }
+        .buffer-item-enter { animation: popIn 0.3s ease-out; }
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .transition-all { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8 font-sans text-slate-800">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+        <header class="text-center space-y-2">
+            <h1 class="text-3xl font-bold text-slate-900">clear_buffer() 动态执行演示</h1>
+            <p class="text-slate-500">理解 C 语言中 while ((c = getchar()) != '\n' && c != EOF) 的底层执行逻辑</p>
+        </header>
+
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+            <div class="bg-slate-100 p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <label class="font-medium text-slate-700">初始化缓冲区输入:</label>
+                    <input type="text" id="userInput" value="A B" class="px-3 py-1.5 border border-slate-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-32 font-mono">
+                    <span class="text-xs text-slate-500">（程序会自动在末尾补充 \n）</span>
+                </div>
+                <button onclick="initSimulation()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded shadow transition-colors">
+                    🔄 加载并重置状态
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2">
+                <div class="bg-[#1e1e1e] text-slate-300 p-6 font-mono text-sm leading-8 overflow-x-auto relative">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                    <div class="mb-4 text-xs text-slate-500 border-b border-slate-700 pb-2">代码区 (buffer_clear.c)</div>
+                    
+                    <div id="code-line-1" class="px-4 transition-all border-l-4 border-transparent"><code>void clear_buffer()</code></div>
+                    <div id="code-line-2" class="px-4 transition-all border-l-4 border-transparent"><code>{</code></div>
+                    <div id="code-line-3" class="px-4 transition-all border-l-4 border-transparent pl-8"><code>int c;</code></div>
+                    <div id="code-line-4" class="px-4 transition-all border-l-4 border-transparent pl-8 flex items-center flex-wrap gap-x-1">
+                        <code>while (</code>
+                        <span id="code-part-assign"><code>(c = </code><span id="code-part-getchar"><code>getchar()</code></span><code>)</code></span>
+                        <span id="code-part-cond1"><code> != '\n'</code></span>
+                        <code> && </code>
+                        <span id="code-part-cond2"><code>c != EOF</code></span>
+                        <code>);</code>
+                    </div>
+                    <div id="code-line-5" class="px-4 transition-all border-l-4 border-transparent"><code>}</code></div>
+                </div>
+
+                <div class="p-6 bg-white space-y-8">
+                    
+                    <div class="bg-blue-50 rounded-xl p-5 border border-blue-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-bold text-blue-900 flex items-center gap-2">
+                                <span>▶</span> 当前执行步骤
+                            </h3>
+                            <span class="text-sm font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded">Step <span id="stepCounter">0</span> / <span id="totalSteps">0</span></span>
+                        </div>
+                        <p id="stepDescription" class="text-blue-800 min-h-[3rem]">点击“开始/下一步”进行演示...</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 relative">
+                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">变量 c 的内存状态</h4>
+                            <div class="flex items-center justify-center">
+                                <div class="w-24 h-24 rounded-full border-4 border-dashed border-slate-300 flex items-center justify-center bg-white shadow-inner relative">
+                                    <span id="cVariableDisplay" class="text-3xl font-mono font-bold text-slate-400">?</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">stdin 输入缓冲区 (Queue)</h4>
+                            <div class="flex items-center gap-2 overflow-x-auto pb-2 min-h-[4rem]" id="bufferContainer">
+                                </div>
+                            <div class="text-[10px] text-slate-400 mt-2 text-center">读取方向：从左至右 ➔</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-center gap-4">
+                <button onclick="prevStep()" id="btnPrev" disabled class="px-6 py-2.5 bg-white border border-slate-300 text-slate-600 font-medium rounded-lg shadow-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2">
+                    ← 上一步
+                </button>
+                <button onclick="nextStep()" id="btnNext" class="px-8 py-2.5 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition-all flex items-center gap-2">
+                    下一步 →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 核心状态 ---
+        let steps = [];
+        let currentStepIndex = 0;
+
+        // --- DOM 元素缓存 ---
+        const els = {
+            input: document.getElementById('userInput'),
+            desc: document.getElementById('stepDescription'),
+            cVar: document.getElementById('cVariableDisplay'),
+            bufferCont: document.getElementById('bufferContainer'),
+            btnPrev: document.getElementById('btnPrev'),
+            btnNext: document.getElementById('btnNext'),
+            stepCount: document.getElementById('stepCounter'),
+            totalCount: document.getElementById('totalSteps'),
+        };
+
+        const codeEls = {
+            lines: [null, document.getElementById('code-line-1'), document.getElementById('code-line-2'), document.getElementById('code-line-3'), document.getElementById('code-line-4'), document.getElementById('code-line-5')],
+            parts: {
+                getchar: document.getElementById('code-part-getchar'),
+                assign: document.getElementById('code-part-assign'),
+                cond1: document.getElementById('code-part-cond1'),
+                cond2: document.getElementById('code-part-cond2')
+            }
+        };
+
+        // --- 核心逻辑：预计算执行步骤 ---
+        // 将执行过程转化为一系列确定的状态帧，方便前进和后退
+        function generateSteps(inputText) {
+            let trace = [];
+            // 处理输入，确保末尾有 \n
+            let chars = inputText.split('');
+            if (chars.length === 0 || chars[chars.length - 1] !== '\n') {
+                chars.push('\n');
+            }
+            
+            let buffer = [...chars];
+            let c = "?"; // 初始未赋值
+
+            trace.push({
+                line: 3, part: null,
+                desc: "函数开始执行，在栈内存中声明整型变量 int c。此时它的值是未知的垃圾数据。",
+                bufferState: [...buffer], cState: c
+            });
+
+            let loopCount = 1;
+
+            while (true) {
+                // 1. getchar() 取值
+                trace.push({
+                    line: 4, part: 'getchar',
+                    desc: `[第 ${loopCount} 次循环] 调用 <b>getchar()</b>。系统前往输入缓冲区查看是否有数据...`,
+                    bufferState: [...buffer], cState: c
+                });
+
+                if (buffer.length === 0) break; // 防止死循环保护
+
+                let readChar = buffer.shift();
+                let displayChar = readChar === '\n' ? '\\n' : readChar;
+                let isSpace = readChar === ' ';
+
+                // 2. 赋值给 c
+                c = readChar;
+                trace.push({
+                    line: 4, part: 'assign',
+                    desc: `从缓冲区成功取出字符 <b class="text-blue-600">'${isSpace ? '空格' : displayChar}'</b>，并赋值给变量 c。`,
+                    bufferState: [...buffer], cState: c
+                });
+
+                // 3. 判定 1: c != '\n'
+                let isNotNewline = (c !== '\n');
+                trace.push({
+                    line: 4, part: 'cond1',
+                    desc: `判断左侧条件 <b>c != '\\n'</b>。<br>当前 c 是 '${isSpace ? ' ' : displayChar}'，${isNotNewline ? '<span class="text-green-600 font-bold">条件成立 (True)</span>' : '<span class="text-red-600 font-bold">条件不成立 (False)</span>'}。`,
+                    bufferState: [...buffer], cState: c
+                });
+
+                if (!isNotNewline) {
+                    trace.push({
+                        line: 4, part: null,
+                        desc: `因为遇到 '\\n'，逻辑与(&&)发生了<b>短路</b>，不再判断后续条件。退出 while 循环！`,
+                        bufferState: [...buffer], cState: c
+                    });
+                    break;
+                }
+
+                // 4. 判定 2: c != EOF
+                trace.push({
+                    line: 4, part: 'cond2',
+                    desc: `因为左侧成立，继续判断右侧条件 <b>c != EOF</b>。我们尚未遇到文件结束符，<span class="text-green-600 font-bold">条件成立 (True)</span>。`,
+                    bufferState: [...buffer], cState: c
+                });
+
+                loopCount++;
+            }
+
+            trace.push({
+                line: 5, part: null,
+                desc: "成功退出循环！函数执行完毕，此时缓冲区中该行的数据已被全部读取并丢弃，实现了清理功能。",
+                bufferState: [...buffer], cState: c
+            });
+
+            return trace;
+        }
+
+        // --- UI 渲染函数 ---
+        function renderStep(index) {
+            const step = steps[index];
+            
+            // 更新文字说明
+            els.desc.innerHTML = step.desc;
+            els.stepCount.innerText = index + 1;
+            
+            // 更新 C 变量
+            let cDisp = step.cState;
+            if (cDisp === '\n') cDisp = '\\n';
+            if (cDisp === ' ') cDisp = '␣';
+            els.cVar.innerText = cDisp;
+            if(cDisp !== '?') {
+                els.cVar.className = "text-4xl font-mono font-bold text-blue-600";
+            } else {
+                els.cVar.className = "text-4xl font-mono font-bold text-slate-300";
+            }
+
+            // 渲染缓冲区数组
+            els.bufferCont.innerHTML = '';
+            if (step.bufferState.length === 0) {
+                els.bufferCont.innerHTML = '<span class="text-slate-400 text-sm italic py-2">缓冲区已空</span>';
+            } else {
+                step.bufferState.forEach(char => {
+                    const div = document.createElement('div');
+                    let display = char === '\n' ? '\\n' : (char === ' ' ? '␣' : char);
+                    div.className = "buffer-item-enter flex-shrink-0 w-10 h-12 bg-white border-2 border-slate-700 rounded-md flex items-center justify-center font-mono font-bold text-lg text-slate-700 shadow-sm";
+                    div.innerText = display;
+                    els.bufferCont.appendChild(div);
+                });
+            }
+
+            // 清理所有高亮
+            for(let i=1; i<=5; i++) codeEls.lines[i].classList.remove('active-line');
+            Object.values(codeEls.parts).forEach(el => el.classList.remove('highlight-code'));
+
+            // 设置新的高亮
+            codeEls.lines[step.line].classList.add('active-line');
+            if(step.part && codeEls.parts[step.part]) {
+                codeEls.parts[step.part].classList.add('highlight-code');
+            }
+
+            // 按钮状态
+            els.btnPrev.disabled = (index === 0);
+            
+            if (index === steps.length - 1) {
+                els.btnNext.innerText = "演示结束";
+                els.btnNext.disabled = true;
+                els.btnNext.classList.replace('bg-blue-600', 'bg-slate-400');
+            } else {
+                els.btnNext.innerText = "下一步 →";
+                els.btnNext.disabled = false;
+                els.btnNext.classList.replace('bg-slate-400', 'bg-blue-600');
+            }
+        }
+
+        // --- 控制功能 ---
+        function initSimulation() {
+            let val = els.input.value;
+            steps = generateSteps(val);
+            els.totalCount.innerText = steps.length;
+            currentStepIndex = 0;
+            renderStep(currentStepIndex);
+        }
+
+        function nextStep() {
+            if (currentStepIndex < steps.length - 1) {
+                currentStepIndex++;
+                renderStep(currentStepIndex);
+            }
+        }
+
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                renderStep(currentStepIndex);
+            }
+        }
+
+        // 初始化
+        window.onload = initSimulation;
+    </script>
+</body>
+</html>
