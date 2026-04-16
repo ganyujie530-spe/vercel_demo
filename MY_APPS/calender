@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Animated Calendar 2024</title>
+    <style>
+        /* --- 现代美学：CSS 变量 & 现代字体 --- */
+        :root {
+            --primary: #4f46e5; /* 现代紫 */
+            --bg: #f3f4f6;
+            --text: #1f2937;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --border: rgba(229, 231, 235, 0.5);
+            --glass-blur: blur(10px);
+            --holiday: #ef4444; /* 醒目的红色，用于标记节日，但不显示文字 */
+        }
+
+        /* --- 深色模式自适应 --- */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111827;
+                --text: #f3f4f6;
+                --card-bg: rgba(31, 41, 55, 0.6);
+                --border: rgba(75, 85, 99, 0.3);
+            }
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            perspective: 1000px; /* 为3D动画准备 */
+        }
+
+        /* --- 日历整体容器 --- */
+        .calendar-container {
+            width: 90%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* --- 月份卡片：毛玻璃效果 --- */
+        .month {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            
+            /* --- 动画1：加载时的渐显和上浮 --- */
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideUpFade 0.6s ease-out forwards;
+        }
+
+        /* 为不同的月份设置延迟，实现依次加载的效果 */
+        .month:nth-child(1) { animation-delay: 0.1s; }
+        .month:nth-child(2) { animation-delay: 0.2s; }
+        .month:nth-child(3) { animation-delay: 0.3s; }
+        .month:nth-child(n+4) { animation-delay: 0.4s; } /* 后续月份稍微快一点 */
+
+        /* 定义滑入渐显动画 */
+        @keyframes slideUpFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- 月份标题 --- */
+        .month-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        /* --- 星期行 --- */
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+
+        /* --- 日期网格 --- */
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+
+        /* --- 每一个日期单元格 --- */
+        .day {
+            aspect-ratio: 1; /* 保持正方形 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease; /* 流畅的悬停动画 */
+            position: relative;
+        }
+
+        /* --- 动画2：悬停时的放大和光晕 --- */
+        .day:not(.empty):hover {
+            background-color: var(--primary);
+            color: white;
+            transform: scale(1.15) translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+            z-index: 10;
+        }
+
+        /* --- 标记“今天” --- */
+        .today {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 700;
+        }
+
+        /* --- 省略杂乱信息的关键：节日标记 --- */
+        /* 不显示具体的文字，只用一个小红点表示有节日/调休 */
+        .has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background-color: var(--holiday);
+            border-radius: 50%;
+        }
+
+        /* 隐藏 PDF 中那些杂乱的调休、纪念日文字，保持界面极简 */
+        .event-text {
+            display: none;
+        }
+
+        /* 空白的日期单元格（月初排版用） */
+        .empty {
+            cursor: default;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="calendar-container" id="calendar">
+        </div>
+
+    <script>
+        // --- 核心逻辑：生成 2024 年日历 ---
+        const calendarContainer = document.getElementById('calendar');
+        const year = 2024;
+
+        // 静态标记 2024 年的主要节日（不需要文字，只要知道哪天是红点）
+        // 这里简化了 PDF 中的内容，只保留主要节日和调休的“日期”
+        const holidays2024 = {
+            '1-1': '元旦', '2-10': '春节', '2-11': '春节', '2-12': '春节', '2-13': '春节', '2-14': '春节', '2-15': '春节', '2-16': '春节', '2-17': '春节',
+            '4-4': '清明节', '5-1': '劳动节', '5-2': '劳动节', '5-3': '劳动节', '5-4': '劳动节', '5-5': '劳动节',
+            '6-10': '端午节', '9-17': '中秋节', '10-1': '国庆节', '10-2': '国庆节', '10-3': '国庆节', '10-4': '国庆节', '10-5': '国庆节', '10-6': '国庆节', '10-7': '国庆节',
+            // 一些 PDF 里提到的调休，也标记为红点
+            '2-4': '调休', '2-18': '调休', '4-7': '调休', '4-28': '调休', '5-11': '调休', '9-14': '调休', '9-29': '调休', '10-12': '调休'
+        };
+
+        const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+
+        const today = new Date();
+
+        for (let month = 0; month < 12; month++) {
+            // 创建月份卡片
+            const monthCard = document.createElement('div');
+            monthCard.className = 'month';
+
+            // 1. 月份标题
+            const monthTitle = document.createElement('h3');
+            monthTitle.className = 'month-name';
+            monthTitle.textContent = `${year}年 ${monthNames[month]}`;
+            monthCard.appendChild(monthTitle);
+
+            // 2. 星期行
+            const weekdaysRow = document.createElement('div');
+            weekdaysRow.className = 'weekdays';
+            weekdays.forEach(day => {
+                const dayEl = document.createElement('div');
+                dayEl.textContent = day;
+                weekdaysRow.appendChild(dayEl);
+            });
+            monthCard.appendChild(weekdaysRow);
+
+            // 3. 日期网格
+            const daysGrid = document.createElement('div');
+            daysGrid.className = 'days';
+
+            // 获取该月第一天是星期几
+            const firstDay = new Date(year, month, 1).getDay();
+            // 获取该月有多少天
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // 填充月初的空白
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'day empty';
+                daysGrid.appendChild(emptyDay);
+            }
+
+            // 填充具体的日期
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'day';
+                dayEl.textContent = d;
+
+                // 标记节日（只加红点，省略节日名）
+                const dateKey = `${month + 1}-${d}`;
+                if (holidays2024[dateKey]) {
+                    dayEl.classList.add('has-event');
+                    dayEl.title = ``; // 清空悬停提示，保持极简
+                }
+
+                // 标记今天
+                if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === d) {
+                    dayEl.classList.add('today');
+                }
+
+                daysGrid.appendChild(dayEl);
+            }
+
+            monthCard.appendChild(daysGrid);
+            calendarContainer.appendChild(monthCard);
+        }
+    </script>
+</body>
+</html>
