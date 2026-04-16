@@ -2,14 +2,22 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全景寻路中枢 - 旗舰版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>全景寻路中枢 - 进化版</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#030508">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="寻路中枢">
+    <link rel="apple-touch-icon" href="icon.svg">
+
     <style>
         :root {
             --bg-dark: #030508;
             --card-bg: rgba(12, 16, 24, 0.85);
             --neon-cyan: #00f3ff;
-            --neon-cyan-dim: rgba(0, 243, 255, 0.2);
+            --neon-cyan-dim: rgba(0, 243, 255, 0.15);
             --text-main: #ffffff;
             --text-muted: #64748b;
         }
@@ -20,8 +28,8 @@
             background: var(--bg-dark);
             background-image: 
                 radial-gradient(ellipse at top, var(--neon-cyan-dim) 0%, transparent 60%),
-                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
             background-size: 100% 100%, 30px 30px, 30px 30px;
             font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
             color: var(--text-main);
@@ -30,56 +38,39 @@
             flex-direction: column;
             align-items: center;
             padding: 40px 20px;
+            overscroll-behavior-y: none; 
         }
 
         .container {
             width: 100%;
-            max-width: 900px; /* 界面大幅加宽 */
+            max-width: 900px;
             display: flex;
             flex-direction: column;
             gap: 25px;
         }
 
-        /* 顶部环境信息 */
-        .header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-end;
-            padding: 0 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 15px;
-        }
-        .header-left { display: flex; flex-direction: column; gap: 5px; }
-        .header-clock { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 2rem; font-weight: 300; letter-spacing: 2px; }
-        .header-date { font-size: 1rem; color: var(--text-muted); letter-spacing: 3px; text-transform: uppercase; }
-        .header-status { color: var(--neon-cyan); font-family: monospace; font-size: 0.9rem; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;}
-        .pulse-dot { width: 8px; height: 8px; background: var(--neon-cyan); border-radius: 50%; box-shadow: 0 0 10px var(--neon-cyan); animation: pulse 2s infinite; }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-
-        /* 巨幕主卡片 */
+        /* 顶部主卡片 */
         .hero-card {
             background: var(--card-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(0, 243, 255, 0.15);
             border-radius: 30px;
-            padding: 50px 40px;
+            padding: 40px;
             text-align: center;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(0, 243, 255, 0.03);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 243, 255, 0.03);
             position: relative;
             overflow: hidden;
         }
 
         .hero-label { font-size: 1.1rem; color: var(--text-muted); letter-spacing: 4px; margin-bottom: 25px; }
 
-        /* 带单位的精细倒计时 */
         .countdown-wrapper {
             display: flex;
             justify-content: center;
             align-items: baseline;
             gap: 15px;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
         }
 
         .time-block {
@@ -93,34 +84,26 @@
 
         .time-num {
             font-family: 'JetBrains Mono', 'Consolas', monospace;
-            font-size: 5rem; /* 更大的倒计时数字 */
+            font-size: 4.5rem;
             font-weight: 700;
             line-height: 1;
             color: var(--text-main);
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
         }
 
-        .time-unit {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            margin-left: 8px;
-            font-weight: 500;
-        }
-
+        .time-unit { font-size: 1.2rem; color: var(--text-muted); margin-left: 8px; font-weight: 500; }
         .time-colon { font-size: 3rem; color: var(--text-muted); padding-bottom: 10px; animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        /* 强化版目的地显示器 */
         .destination-display {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(0, 243, 255, 0.2);
-            border-radius: 24px;
-            padding: 35px 20px;
+            border-radius: 20px;
+            padding: 30px 20px;
             position: relative;
             overflow: hidden;
         }
 
-        /* 赛博扫描线动画 */
         .destination-display::after {
             content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.1), transparent);
@@ -131,92 +114,123 @@
 
         .target-loc {
             font-family: 'JetBrains Mono', 'Consolas', monospace;
-            font-size: 5.5rem; /* 终极字号，占据绝对视觉焦点 */
+            font-size: 5rem;
             font-weight: 900;
             color: var(--neon-cyan);
-            text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+            text-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
             line-height: 1;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             letter-spacing: 2px;
         }
 
-        .target-meta {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            font-size: 1.2rem;
-            color: var(--text-main);
-        }
-        
+        .target-meta { display: flex; justify-content: center; align-items: center; gap: 15px; font-size: 1.1rem; color: var(--text-main); }
         .meta-divider { color: var(--text-muted); }
         .target-teacher { color: var(--text-muted); }
 
-        /* 当天日程列表放大 */
-        .list-section { padding: 0 10px; }
-        .list-title { font-size: 1rem; color: var(--text-muted); letter-spacing: 3px; margin-bottom: 15px; border-left: 3px solid var(--neon-cyan); padding-left: 10px; }
+        /* 列表部分 */
+        .list-section { padding: 0 5px; }
+        .list-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            border-left: 3px solid var(--neon-cyan); 
+            padding-left: 12px; 
+            min-height: 30px;
+        }
+        .list-title-text { font-size: 1rem; color: var(--text-muted); letter-spacing: 3px; }
         
-        .schedule-grid { display: flex; flex-direction: column; gap: 18px; }
+        .schedule-grid { display: flex; flex-direction: column; gap: 15px; }
 
+        /* 全新优化的卡片样式 */
         .list-card {
             background: rgba(255, 255, 255, 0.02);
-            border-radius: 20px;
-            padding: 25px 30px;
+            border-radius: 16px;
+            padding: 22px 25px;
             border: 1px solid rgba(255, 255, 255, 0.04);
+            border-left: 4px solid transparent;
             display: flex;
             align-items: center;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
         }
-        .list-card:hover { background: rgba(255, 255, 255, 0.04); border-color: rgba(0, 243, 255, 0.2); }
+        .list-card:hover { 
+            background: rgba(255, 255, 255, 0.04); 
+            border-left-color: var(--neon-cyan);
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
 
-        .card-time { font-family: monospace; font-size: 1.3rem; color: var(--text-muted); padding-right: 30px; border-right: 1px solid rgba(255,255,255,0.1); margin-right: 30px; }
-        .card-loc { font-family: monospace; font-size: 2.2rem; font-weight: 800; color: var(--neon-cyan); margin-bottom: 5px; display: block; }
-        .card-name { font-size: 1rem; color: var(--text-main); }
+        /* 时间部分显著放大、高亮 */
+        .card-time { 
+            font-family: 'JetBrains Mono', 'Consolas', monospace; 
+            font-size: 1.8rem; /* 显著加大 */
+            font-weight: 700;
+            color: #ffffff; /* 纯白高亮 */
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            min-width: 90px;
+            text-align: left;
+            padding-right: 25px; 
+            margin-right: 25px;
+            border-right: 1px solid rgba(255,255,255,0.1); 
+        }
+        
+        .card-info { display: flex; flex-direction: column; gap: 4px;}
+        .card-loc { 
+            font-family: 'JetBrains Mono', 'Consolas', monospace; 
+            font-size: 2rem; /* 地点同样霸气 */
+            font-weight: 800; 
+            color: var(--neon-cyan); 
+            line-height: 1;
+        }
+        .card-name { font-size: 0.95rem; color: var(--text-main); opacity: 0.9;}
+        .card-day { 
+            font-size: 0.8rem; color: var(--neon-cyan); background: rgba(0,243,255,0.1); 
+            padding: 2px 8px; border-radius: 4px; margin-top: 4px; display: inline-block; 
+            width: fit-content; font-weight: 500; letter-spacing: 1px;
+        }
 
-        /* 响应式调整 */
+        /* 静态防抖控的按钮样式 */
+        .btn-close { 
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); 
+            color: var(--text-muted); padding: 6px 14px; border-radius: 8px; 
+            cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+        }
+        .btn-close:hover { color: #fff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+
+        .btn-future {
+            width: 100%; background: transparent; border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--neon-cyan); font-size: 1.1rem; letter-spacing: 4px; padding: 25px;
+            border-radius: 16px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase;
+            font-weight: 600;
+        }
+        .btn-future:hover { 
+            background: rgba(0, 243, 255, 0.05); border-color: var(--neon-cyan); 
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.15); transform: translateY(-2px);
+        }
+
+        /* 隐藏元素的辅助类 */
+        .hidden { display: none !important; }
+
         @media (max-width: 768px) {
-            .time-num { font-size: 3rem; }
-            .target-loc { font-size: 3.5rem; }
-            .countdown-wrapper { gap: 5px; }
-            .time-block { padding: 10px; }
-            .card-loc { font-size: 1.5rem; }
-            .card-time { padding-right: 15px; margin-right: 15px; font-size: 1.1rem; }
-            .target-meta { flex-direction: column; gap: 5px; }
-            .meta-divider { display: none; }
+            .time-num { font-size: 3.2rem; }
+            .target-loc { font-size: 3.8rem; }
+            .countdown-wrapper { gap: 8px; }
+            .list-card { padding: 18px 15px; }
+            .card-time { font-size: 1.4rem; padding-right: 15px; margin-right: 15px; min-width: 70px; }
+            .card-loc { font-size: 1.6rem; }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="header">
-            <div class="header-left">
-                <div class="header-clock" id="header-clock">00:00:00</div>
-                <div class="header-date" id="header-date">--月--日 星期-</div>
-            </div>
-            <div class="header-status">
-                <span class="pulse-dot"></span> SYSTEM ONLINE
-            </div>
-        </div>
-
         <div class="hero-card">
             <div class="hero-label" id="hero-label">距离下个坐标点还有</div>
             
             <div class="countdown-wrapper" id="countdown-container">
-                <div class="time-block">
-                    <span class="time-num" id="cd-h">00</span>
-                    <span class="time-unit">时</span>
-                </div>
-                <div class="time-colon">:</div>
-                <div class="time-block">
-                    <span class="time-num" id="cd-m">00</span>
-                    <span class="time-unit">分</span>
-                </div>
-                <div class="time-colon">:</div>
-                <div class="time-block">
-                    <span class="time-num" id="cd-s">00</span>
-                    <span class="time-unit">秒</span>
-                </div>
+                <div class="time-block"><span class="time-num" id="cd-h">00</span><span class="time-unit">时</span></div><div class="time-colon">:</div>
+                <div class="time-block"><span class="time-num" id="cd-m">00</span><span class="time-unit">分</span></div><div class="time-colon">:</div>
+                <div class="time-block"><span class="time-num" id="cd-s">00</span><span class="time-unit">秒</span></div>
             </div>
             
             <div class="destination-display">
@@ -230,13 +244,27 @@
         </div>
 
         <div class="list-section">
-            <div class="list-title" id="list-title">今日后续进程</div>
-            <div class="schedule-grid" id="schedule-list">
-                </div>
+            <div class="list-header">
+                <div class="list-title-text" id="list-title-text">进程同步中...</div>
+                <button id="btn-fold" class="btn-close hidden">折叠视图</button>
+            </div>
+            
+            <div class="schedule-grid" id="schedule-list"></div>
+
+            <div id="expand-container" class="hidden" style="margin-top: 15px;">
+                <button id="btn-expand" class="btn-future">[ SYSTEM: 检索未来跨日进程 ]</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // PWA 注册
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.error('PWA:', err));
+            });
+        }
+
         const mySchedule = [
             { day: 1, start: '10:00', end: '12:00', name: '[CST104] Introduction to CST', loc: 'A1#103', teacher: 'Hiew Fui Chin' },
             { day: 1, start: '14:00', end: '17:00', name: '[BSC121] Calculus I A', loc: 'A2#G09', teacher: 'Al-Shawba' },
@@ -248,21 +276,22 @@
         ];
 
         const dayStrs = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        
+        // 全局状态管理
+        let viewFutureMode = false;
+        let lastListHtml = "";
+        let lastTitleText = "";
+
+        // 静态绑定事件，彻底隔离于渲染刷新循环之外
+        document.getElementById('btn-fold').addEventListener('click', () => { viewFutureMode = false; });
+        document.getElementById('btn-expand').addEventListener('click', () => { viewFutureMode = true; });
 
         function update() {
             const now = new Date();
-            
-            // 时钟更新
-            document.getElementById('header-clock').innerText = now.toTimeString().split(' ')[0];
-            document.getElementById('header-date').innerText = `${now.getMonth()+1}月${now.getDate()}日 ${dayStrs[now.getDay()]}`;
-
             const currentDay = now.getDay() === 0 ? 7 : now.getDay();
             const currentTime = now.getHours() * 60 + now.getMinutes();
 
             let upcoming = [];
-            let targetDayOffset = -1;
-
-            // 搜索逻辑
             for(let i=0; i<7; i++) {
                 let checkDay = (currentDay + i - 1) % 7 + 1;
                 let dayClasses = mySchedule.filter(c => c.day === checkDay);
@@ -271,47 +300,33 @@
                 dayClasses.forEach(c => {
                     const [h, m] = c.start.split(':').map(Number);
                     const [eh, em] = c.end.split(':').map(Number);
-                    
                     let targetDate = new Date(now);
                     targetDate.setDate(now.getDate() + i);
                     targetDate.setHours(h, m, 0, 0);
-
                     let endDate = new Date(now);
                     endDate.setDate(now.getDate() + i);
                     endDate.setHours(eh, em, 0, 0);
 
                     if(i === 0 && currentTime > (eh * 60 + em)) return;
-
-                    if (targetDayOffset === -1) {
-                        targetDayOffset = i;
-                    }
-
-                    if (i === targetDayOffset) {
-                        upcoming.push({...c, targetDate, endDate});
-                    }
+                    upcoming.push({...c, targetDate, endDate});
                 });
-
-                if (targetDayOffset !== -1) break;
             }
 
-            // 渲染数据
             if(upcoming.length > 0) {
                 const next = upcoming[0];
                 const diff = next.targetDate - now;
                 const inProgress = now >= next.targetDate && now <= next.endDate;
-
                 const cdContainer = document.getElementById('countdown-container');
 
+                // 巨幕渲染
                 if(inProgress) {
                     document.getElementById('hero-label').innerText = "📍 抵达坐标 · 课程进行中";
-                    cdContainer.innerHTML = `<div class="time-num" style="color: #2ecc71; font-size: 4rem; letter-spacing: 5px;">IN PROGRESS</div>`;
+                    cdContainer.innerHTML = `<div class="time-num" style="color: #2ecc71; letter-spacing: 5px;">IN PROGRESS</div>`;
                 } else {
                     document.getElementById('hero-label').innerText = "距离前往下一个坐标点还有";
                     const h = Math.floor(diff / 3600000);
                     const m = Math.floor((diff % 3600000) / 60000);
                     const s = Math.floor((diff % 60000) / 1000);
-                    
-                    // 如果被替换成了 IN PROGRESS，需要恢复 HTML 结构
                     if (!document.getElementById('cd-h')) {
                         cdContainer.innerHTML = `
                             <div class="time-block"><span class="time-num" id="cd-h"></span><span class="time-unit">时</span></div><div class="time-colon">:</div>
@@ -319,7 +334,6 @@
                             <div class="time-block"><span class="time-num" id="cd-s"></span><span class="time-unit">秒</span></div>
                         `;
                     }
-                    
                     document.getElementById('cd-h').innerText = String(h).padStart(2,'0');
                     document.getElementById('cd-m').innerText = String(m).padStart(2,'0');
                     document.getElementById('cd-s').innerText = String(s).padStart(2,'0');
@@ -329,38 +343,74 @@
                 document.getElementById('next-name').innerText = next.name;
                 document.getElementById('next-teacher').innerText = next.teacher;
 
-                // 列表渲染
-                const remainingClasses = upcoming.slice(1);
-                if (remainingClasses.length > 0) {
-                    const dayName = targetDayOffset === 0 ? "今日" : dayStrs[next.targetDate.getDay()];
-                    document.getElementById('list-title').innerText = `${dayName} 后续进程`;
+                // 列表状态渲染控制
+                const targetDayStr = next.targetDate.toDateString();
+                const remainingSameDay = upcoming.filter(c => c.targetDate.toDateString() === targetDayStr).slice(1);
+                
+                let listHtml = "";
+                let titleText = "";
+                let showFoldBtn = false;
+                let showExpandBtn = false;
+
+                if (viewFutureMode) {
+                    titleText = "全局跨日进程扫描";
+                    showFoldBtn = true;
                     
-                    const listHtml = remainingClasses.map(c => `
+                    const futureClasses = upcoming.slice(1);
+                    listHtml = futureClasses.map(c => `
                         <div class="list-card">
                             <div class="card-time">${c.start}</div>
-                            <div>
+                            <div class="card-info">
                                 <span class="card-loc">${c.loc}</span>
                                 <span class="card-name">${c.name}</span>
+                                <div class="card-day">${c.targetDate.getMonth()+1}/${c.targetDate.getDate()} ${dayStrs[c.targetDate.getDay()]}</div>
                             </div>
                         </div>
                     `).join('');
-                    document.getElementById('schedule-list').innerHTML = listHtml;
                 } else {
-                    document.getElementById('list-title').innerText = "进程清空";
-                    document.getElementById('schedule-list').innerHTML = `
-                        <div class="list-card" style="opacity: 0.5; justify-content: center;">
-                            <span class="card-name">当日已无后续课程安排</span>
-                        </div>
-                    `;
+                    if (remainingSameDay.length > 0) {
+                        const dayName = next.targetDate.getDate() === now.getDate() ? "今日" : dayStrs[next.targetDate.getDay()];
+                        titleText = `${dayName} 后续进程`;
+                        
+                        listHtml = remainingSameDay.map(c => `
+                            <div class="list-card">
+                                <div class="card-time">${c.start}</div>
+                                <div class="card-info">
+                                    <span class="card-loc">${c.loc}</span>
+                                    <span class="card-name">${c.name}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        titleText = "当日进程已清空";
+                        showExpandBtn = true;
+                    }
                 }
+
+                // Diff 更新 DOM，防止闪烁和吞事件
+                if (titleText !== lastTitleText) {
+                    document.getElementById('list-title-text').innerText = titleText;
+                    lastTitleText = titleText;
+                }
+                
+                if (listHtml !== lastListHtml) {
+                    document.getElementById('schedule-list').innerHTML = listHtml;
+                    lastListHtml = listHtml;
+                }
+
+                // 显隐静态按钮
+                document.getElementById('btn-fold').classList.toggle('hidden', !showFoldBtn);
+                document.getElementById('expand-container').classList.toggle('hidden', !showExpandBtn);
 
             } else {
                 document.getElementById('hero-label').innerText = "系统空闲";
                 document.getElementById('countdown-container').innerHTML = `<div class="time-num">ALL CLEAR</div>`;
                 document.getElementById('next-loc').innerText = "N/A";
                 document.getElementById('next-name').innerText = "暂无排课";
-                document.getElementById('next-teacher').innerText = "--";
+                document.getElementById('list-title-text').innerText = "";
                 document.getElementById('schedule-list').innerHTML = "";
+                document.getElementById('btn-fold').classList.add('hidden');
+                document.getElementById('expand-container').classList.add('hidden');
             }
 
             requestAnimationFrame(update);
