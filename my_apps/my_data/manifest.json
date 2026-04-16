@@ -2,14 +2,14 @@
   "name": "全景寻路中枢",
   "short_name": "寻路中枢",
   "description": "个人专属的离线学术日程与寻路仪表盘",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#030508",
   "theme_color": "#030508",
   "icons": [
     {
-      "src": "icon.svg",
-      "sizes": "512x512",
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
