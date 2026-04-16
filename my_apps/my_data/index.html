@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全屏高精度环境数据终端</title>
+    <title>动态课程追踪中枢</title>
     <style>
-        /* 全屏沉浸式布局 */
+        /* 页面基础设定：深邃科技感背景 */
         body {
             margin: 0;
             padding: 0;
@@ -13,224 +13,264 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
-            font-family: 'Consolas', 'Segoe UI', system-ui, sans-serif;
-            color: #e0e0e0;
+            background: linear-gradient(135deg, #09121b 0%, #1a2a3a 100%);
+            font-family: 'Segoe UI', -apple-system, sans-serif;
+            color: #ffffff;
             overflow: hidden;
         }
 
-        /* 全屏网格卡片 */
+        /* 核心看板容器 */
         .dashboard {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-            width: 90vw;
-            max-width: 1000px;
-            height: 85vh;
-            background: rgba(20, 25, 30, 0.4);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 30px;
-            padding: 40px;
-            box-sizing: border-box;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1);
-        }
-
-        .section {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 20px;
-            padding: 30px;
+            width: 90%;
+            max-width: 800px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.02);
-            transition: all 0.3s ease;
+            gap: 24px;
         }
 
-        .section:hover { background: rgba(0, 0, 0, 0.3); }
+        /* 卡片通用毛玻璃效果 */
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
 
-        /* 时间与日期 */
-        .time-box { text-align: center; }
-        .time { font-size: 6vw; font-weight: 700; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.2); line-height: 1; margin-bottom: 10px; }
-        .date { font-size: 1.5rem; color: #4facfe; font-weight: 600; letter-spacing: 2px; }
-
-        /* 环境数据 (温度+海拔) */
-        .env-box { display: flex; flex-direction: row; justify-content: space-around; width: 100%; }
-        .data-block { text-align: center; }
-        .data-value { font-size: 4rem; font-weight: bold; color: #00f2fe; }
-        .data-unit { font-size: 1.5rem; color: #888; }
-        .data-label { font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin-top: 5px; }
-
-        /* 精确位置信息 */
-        .loc-box { text-align: center; }
-        .address { font-size: 1.8rem; font-weight: 500; color: #fff; margin-bottom: 15px; }
-        .coordinates { font-size: 1rem; color: #00f2fe; font-family: monospace; background: rgba(0, 242, 254, 0.1); padding: 8px 15px; border-radius: 8px; display: inline-block; }
+        /* 核心信息区：下一节课 (放大突出) */
+        .primary-card {
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
         
-        .status-dot {
+        .primary-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+        }
+
+        .status-text {
+            font-size: 1.5rem;
+            color: #a0aec0;
+            margin-bottom: 15px;
+            font-weight: 500;
+            letter-spacing: 2px;
+        }
+
+        /* 倒计时巨幕 */
+        .countdown {
+            font-size: 5.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #ffffff, #a0aec0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Consolas', monospace;
+        }
+
+        /* 核心动作指引 */
+        .action-text {
+            font-size: 2.2rem;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .highlight-loc {
+            color: #00f2fe;
+            background: rgba(0, 242, 254, 0.1);
+            padding: 4px 12px;
+            border-radius: 8px;
             display: inline-block;
-            width: 10px; height: 10px;
-            background-color: #00ff00;
-            border-radius: 50%;
-            margin-right: 8px;
-            box-shadow: 0 0 10px #00ff00;
-            animation: pulse 2s infinite;
+            margin: 0 8px;
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
+        .highlight-class {
+            color: #4facfe;
         }
 
-        /* 响应式调整 */
-        @media (min-width: 768px) {
-            .time { font-size: 5rem; }
-            .dashboard { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-            .time-box { grid-column: 1 / -1; }
-            .loc-box { grid-column: 1 / -1; }
+        /* 次要信息区：下节课的下节课 (缩小弱化) */
+        .secondary-card {
+            padding: 25px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .sec-label {
+            font-size: 1.1rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .sec-details {
+            font-size: 1.3rem;
+            color: #e2e8f0;
+        }
+
+        .sec-teacher {
+            font-size: 0.95rem;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .time-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: #cbd5e0;
+        }
+
+        /* 响应式适配移动端 */
+        @media (max-width: 768px) {
+            .countdown { font-size: 3.5rem; }
+            .action-text { font-size: 1.5rem; }
+            .secondary-card { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .card { padding: 25px; }
         }
     </style>
 </head>
 <body>
 
     <div class="dashboard">
-        <div class="section time-box">
-            <div class="time" id="time">00:00:00</div>
-            <div class="date" id="date">--</div>
-        </div>
-
-        <div class="section">
-            <div class="data-block">
-                <div class="data-value" id="temp">--<span class="data-unit">°C</span></div>
-                <div class="data-label">实时温度 (Current Temp)</div>
+        <div class="card primary-card">
+            <div class="status-text">距离下一节课还有</div>
+            <div class="countdown" id="countdown">--:--:--</div>
+            <div class="action-text">
+                前往 <span class="highlight-loc" id="next-loc">--</span> 上 <br>
+                <span class="highlight-class" id="next-class">--</span>
             </div>
         </div>
 
-        <div class="section">
-            <div class="data-block">
-                <div class="data-value" id="alt">--<span class="data-unit">m</span></div>
-                <div class="data-label" id="alt-label">海拔高度 (Altitude)</div>
+        <div class="card secondary-card">
+            <div>
+                <div class="sec-label">⏭️ 下节课的下节课</div>
+                <div class="sec-details">
+                    <span id="future-class">--</span> 
+                    <span style="opacity: 0.5; margin: 0 8px;">|</span> 
+                    <span id="future-loc" style="color: #00f2fe;">--</span>
+                </div>
+                <div class="sec-teacher" id="future-teacher">--</div>
             </div>
-        </div>
-
-        <div class="section loc-box">
-            <div class="address"><span class="status-dot"></span><span id="address">正在建立卫星连接并解析位置...</span></div>
-            <div class="coordinates" id="coords">LAT: -- | LON: -- | ACCURACY: --</div>
+            <div class="time-badge" id="future-time">--</div>
         </div>
     </div>
 
     <script>
-        // --- 1. 毫秒级时间引擎 ---
-        function updateTime() {
+        // 你的完整静态课程表数据
+        const scheduleData = [
+            { day: 1, start: '10:00', end: '12:00', name: '[CST104] Introduction to CST', loc: 'A1#103', teacher: 'Hiew Fui Chin' },
+            { day: 1, start: '14:00', end: '17:00', name: '[BSC121] Calculus I A', loc: 'A2#G09', teacher: 'Al-Shawba Altaf Abdulkarem Ali' },
+            { day: 2, start: '12:00', end: '14:00', name: '[CST103] Programming Language (C)', loc: 'A2#G05', teacher: 'Muhammad Sufyan Bin Qari Abdul Shakoor' },
+            { day: 3, start: '13:00', end: '15:00', name: '[CST103] Programming Language (C)', loc: 'B1#106', teacher: 'Muhammad Sufyan Bin Qari Abdul Shakoor' },
+            { day: 3, start: '17:00', end: '19:00', name: '[CST104] Introduction to CST', loc: 'A1#110', teacher: 'Hiew Fui Chin' },
+            { day: 4, start: '11:00', end: '13:00', name: '[BSC121] Calculus I A', loc: 'A1#G01', teacher: 'Al-Shawba Altaf Abdulkarem Ali' },
+            { day: 5, start: '09:00', end: '12:00', name: '[BSC124] Linear Algebra', loc: 'A2#G11', teacher: 'Liew Siaw Ching' }
+        ];
+
+        const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+
+        // 生成目标时间的 Date 对象
+        function createTargetDate(now, daysToAdd, timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            const target = new Date(now);
+            target.setDate(target.getDate() + daysToAdd);
+            target.setHours(hours, minutes, 0, 0);
+            return target;
+        }
+
+        // 核心算法：搜索接下来的两节课
+        function getUpcomingClasses() {
             const now = new Date();
-            const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-            
-            const h = String(now.getHours()).padStart(2, '0');
-            const m = String(now.getMinutes()).padStart(2, '0');
-            const s = String(now.getSeconds()).padStart(2, '0');
-            const ms = String(now.getMilliseconds()).padStart(3, '0').substring(0,2); // 增加毫秒跳动感
-            
-            document.getElementById('time').innerText = `${h}:${m}:${s}.${ms}`;
-            document.getElementById('date').innerText = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 | ${days[now.getDay()]}`;
-            requestAnimationFrame(updateTime); // 比 setInterval 更平滑的渲染帧刷新
-        }
-        requestAnimationFrame(updateTime);
+            const currentDay = now.getDay(); // 0-6 (Sun-Sat)
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+            const currentTimeStr = `${String(currentHours).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}`;
 
-        // --- 2. 核心状态与算法 ---
-        let lastLat = null;
-        let lastLon = null;
-        let watchId = null;
+            let upcoming = [];
+            let daysLookAhead = 0;
 
-        // 哈弗辛公式 (计算两次 GPS 坐标的球面距离，单位：米)
-        function getDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; 
-            const p1 = lat1 * Math.PI/180;
-            const p2 = lat2 * Math.PI/180;
-            const dp = (lat2-lat1) * Math.PI/180;
-            const dl = (lon2-lon1) * Math.PI/180;
-            const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
+            // 往后搜索14天，确保能跨过周末找到下两节课
+            while (upcoming.length < 2 && daysLookAhead < 14) {
+                let checkDay = (currentDay + daysLookAhead) % 7;
+                // 将 Date.getDay() 映射到课程表 day (1=Mon ... 5=Fri)
+                let mappedDay = checkDay === 0 ? 7 : checkDay; 
+                
+                let dayClasses = scheduleData.filter(c => c.day === mappedDay);
+                dayClasses.sort((a, b) => a.start.localeCompare(b.start));
 
-        // --- 3. 数据抓取 (带防抖逻辑) ---
-        async function fetchExternalData(lat, lon, deviceAlt) {
-            try {
-                // zoom=18 开启街道级高精度逆向地理编码
-                const [weatherRes, geoRes] = await Promise.all([
-                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&elevation=nan`),
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`)
-                ]);
-
-                const weatherData = await weatherRes.json();
-                const geoData = await geoRes.json();
-
-                // 渲染温度
-                document.getElementById('temp').innerHTML = `${weatherData.current.temperature_2m}<span class="data-unit">°C</span>`;
-
-                // 渲染海拔 (优先硬件 GPS，其次 API 地形数据)
-                if (deviceAlt && deviceAlt !== null) {
-                    document.getElementById('alt').innerHTML = `${Math.round(deviceAlt)}<span class="data-unit">m</span>`;
-                    document.getElementById('alt-label').innerText = "设备传感器海拔 (Sensor Alt)";
-                } else {
-                    document.getElementById('alt').innerHTML = `${Math.round(weatherData.elevation)}<span class="data-unit">m</span>`;
-                    document.getElementById('alt-label').innerText = "地形推算海拔 (Topo Alt)";
-                }
-
-                // 渲染精确地址 (按层级拼接)
-                const a = geoData.address;
-                const exactLocation = [a.road, a.suburb, a.city || a.town || a.county, a.state].filter(Boolean).join(', ');
-                document.getElementById('address').innerText = exactLocation || "未知坐标区域";
-
-            } catch (error) {
-                console.error("API 请求拦截或失败:", error);
-                document.getElementById('address').innerText = "外部 API 请求失败 (可能受限于网络或频控)";
-            }
-        }
-
-        // --- 4. 实时高精度 GPS 监听 ---
-        function startTracking() {
-            if ("geolocation" in navigator) {
-                // 使用 watchPosition 替代 getCurrentPosition
-                watchId = navigator.geolocation.watchPosition(
-                    (pos) => {
-                        const lat = pos.coords.latitude;
-                        const lon = pos.coords.longitude;
-                        const alt = pos.coords.altitude; // GPS 海拔
-                        const accuracy = pos.coords.accuracy; // 精度(米)
-
-                        // 实时更新底层坐标 UI
-                        document.getElementById('coords').innerText = `LAT: ${lat.toFixed(6)} | LON: ${lon.toFixed(6)} | ACCURACY: ±${Math.round(accuracy)}m`;
-
-                        // 防抖逻辑：首次加载，或者移动距离超过 50 米才重新请求外部 API，避免被 API 服务商封禁
-                        if (lastLat === null || getDistance(lastLat, lastLon, lat, lon) > 50) {
-                            lastLat = lat;
-                            lastLon = lon;
-                            fetchExternalData(lat, lon, alt);
+                for (let cls of dayClasses) {
+                    // 如果是今天，只筛选还没开始的课
+                    if (daysLookAhead === 0) {
+                        if (cls.start > currentTimeStr) {
+                            upcoming.push({ ...cls, targetDate: createTargetDate(now, daysLookAhead, cls.start) });
                         }
-                    },
-                    (error) => {
-                        console.warn("定位异常:", error.message);
-                        // 降级兜底：马来西亚雪邦 (Sepang)
-                        document.getElementById('address').innerText = "定位受限或被拒，显示默认位置 (Sepang)";
-                        document.getElementById('coords').innerText = "LAT: 2.819300 | LON: 101.734600 | ACCURACY: NA";
-                        fetchExternalData(2.8193, 101.7346, null);
-                    },
-                    { 
-                        enableHighAccuracy: true, // 强制开启高精度 (调用硬件 GPS)
-                        maximumAge: 0,            // 不使用缓存数据
-                        timeout: 10000            // 10秒超时
+                    } else {
+                        // 如果是未来几天，所有课都符合条件
+                        upcoming.push({ ...cls, targetDate: createTargetDate(now, daysLookAhead, cls.start) });
                     }
-                );
-            } else {
-                document.getElementById('address').innerText = "当前浏览器环境不支持地理定位";
+                    if (upcoming.length >= 2) break;
+                }
+                daysLookAhead++;
             }
+            return upcoming;
         }
 
-        // 启动引擎
-        startTracking();
+        // 格式化倒计时显示
+        function formatCountdown(diffMs) {
+            if (diffMs <= 0) return "00:00:00";
+            const totalSeconds = Math.floor(diffMs / 1000);
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            let result = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            if (days > 0) result = `${days}天 ` + result;
+            return result;
+        }
+
+        // 渲染页面数据
+        function renderDashboard() {
+            const upcoming = getUpcomingClasses();
+            
+            if (upcoming.length >= 1) {
+                const nextClass = upcoming[0];
+                const now = new Date();
+                const diff = nextClass.targetDate - now;
+
+                document.getElementById('countdown').innerText = formatCountdown(diff);
+                document.getElementById('next-loc').innerText = nextClass.loc;
+                document.getElementById('next-class').innerText = nextClass.name;
+            } else {
+                document.getElementById('countdown').innerText = "假期中";
+                document.getElementById('next-loc').innerText = "--";
+                document.getElementById('next-class').innerText = "暂无课程安排";
+            }
+
+            if (upcoming.length >= 2) {
+                const futureClass = upcoming[1];
+                document.getElementById('future-class').innerText = futureClass.name;
+                document.getElementById('future-loc').innerText = futureClass.loc;
+                document.getElementById('future-teacher').innerText = `👨‍🏫 ${futureClass.teacher}`;
+                document.getElementById('future-time').innerText = `${dayNames[futureClass.targetDate.getDay()]} ${futureClass.start}`;
+            }
+            
+            requestAnimationFrame(renderDashboard);
+        }
+
+        // 启动渲染引擎
+        requestAnimationFrame(renderDashboard);
     </script>
 </body>
 </html>
