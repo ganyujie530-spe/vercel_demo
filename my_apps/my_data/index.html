@@ -3,130 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>极简专注 - 寻路中枢</title>
+    <title>全景寻路中枢 - 旗舰版</title>
     <style>
         :root {
-            --bg-color: #070a0f;
-            --card-bg: rgba(15, 20, 28, 0.8);
-            --accent-cyan: #00f3ff;
-            --text-main: #f8fafc;
-            --text-dim: #64748b;
+            --bg-dark: #030508;
+            --card-bg: rgba(12, 16, 24, 0.85);
+            --neon-cyan: #00f3ff;
+            --neon-cyan-dim: rgba(0, 243, 255, 0.2);
+            --text-main: #ffffff;
+            --text-muted: #64748b;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: var(--bg-color);
-            background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.08) 0%, transparent 60%);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-dark);
+            background-image: 
+                radial-gradient(ellipse at top, var(--neon-cyan-dim) 0%, transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 30px 15px;
+            padding: 40px 20px;
         }
 
         .container {
             width: 100%;
-            max-width: 600px; /* 收窄宽度，让视觉更聚焦 */
+            max-width: 900px; /* 界面大幅加宽 */
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 25px;
         }
 
-        /* 顶部时钟 */
-        .header { text-align: center; margin-bottom: 10px; }
-        .header-clock { font-family: 'Consolas', monospace; font-size: 1.5rem; font-weight: bold; color: var(--text-main); }
-        .header-date { font-size: 0.9rem; color: var(--text-dim); letter-spacing: 2px; }
+        /* 顶部环境信息 */
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end;
+            padding: 0 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 15px;
+        }
+        .header-left { display: flex; flex-direction: column; gap: 5px; }
+        .header-clock { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 2rem; font-weight: 300; letter-spacing: 2px; }
+        .header-date { font-size: 1rem; color: var(--text-muted); letter-spacing: 3px; text-transform: uppercase; }
+        .header-status { color: var(--neon-cyan); font-family: monospace; font-size: 0.9rem; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;}
+        .pulse-dot { width: 8px; height: 8px; background: var(--neon-cyan); border-radius: 50%; box-shadow: 0 0 10px var(--neon-cyan); animation: pulse 2s infinite; }
 
-        /* 巨幕卡片：目的地 */
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        /* 巨幕主卡片 */
         .hero-card {
             background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(0, 243, 255, 0.15);
             border-radius: 30px;
-            padding: 40px 20px;
+            padding: 50px 40px;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 243, 255, 0.02);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(0, 243, 255, 0.03);
             position: relative;
+            overflow: hidden;
         }
 
-        .label-status { font-size: 0.9rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
-        
-        .timer {
-            font-family: 'Consolas', monospace;
-            font-size: 3.5rem;
+        .hero-label { font-size: 1.1rem; color: var(--text-muted); letter-spacing: 4px; margin-bottom: 25px; }
+
+        /* 带单位的精细倒计时 */
+        .countdown-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .time-block {
+            display: flex;
+            align-items: baseline;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 10px 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .time-num {
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 5rem; /* 更大的倒计时数字 */
             font-weight: 700;
+            line-height: 1;
             color: var(--text-main);
-            margin-bottom: 25px;
-            line-height: 1;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
         }
 
-        /* 核心修改：地点绝对霸屏 */
-        .destination-box {
-            background: rgba(0, 243, 255, 0.05);
-            border-radius: 20px;
-            padding: 25px 10px;
-            margin-top: 10px;
-            border: 1px solid rgba(0, 243, 255, 0.1);
+        .time-unit {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-left: 8px;
+            font-weight: 500;
         }
 
-        .hero-loc {
-            font-family: 'Consolas', monospace;
-            font-size: 4.5rem; /* 地点超大字号 */
+        .time-colon { font-size: 3rem; color: var(--text-muted); padding-bottom: 10px; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* 强化版目的地显示器 */
+        .destination-display {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 24px;
+            padding: 35px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 赛博扫描线动画 */
+        .destination-display::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.1), transparent);
+            animation: scan 3s infinite linear;
+            pointer-events: none;
+        }
+        @keyframes scan { 100% { left: 200%; } }
+
+        .target-loc {
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 5.5rem; /* 终极字号，占据绝对视觉焦点 */
             font-weight: 900;
-            color: var(--accent-cyan);
-            text-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
+            color: var(--neon-cyan);
+            text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
             line-height: 1;
-            margin-bottom: 15px;
-            display: block;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
         }
 
-        .hero-class { font-size: 1.1rem; color: var(--text-main); font-weight: 500; margin-bottom: 5px; }
-        .hero-teacher { font-size: 0.9rem; color: var(--text-dim); }
-
-        /* 当天后续课程列表 */
-        .list-header { font-size: 0.85rem; color: var(--text-dim); letter-spacing: 2px; margin: 10px 0 5px 10px; }
+        .target-meta {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            font-size: 1.2rem;
+            color: var(--text-main);
+        }
         
-        .schedule-list { display: flex; flex-direction: column; gap: 15px; }
+        .meta-divider { color: var(--text-muted); }
+        .target-teacher { color: var(--text-muted); }
 
-        .class-item {
+        /* 当天日程列表放大 */
+        .list-section { padding: 0 10px; }
+        .list-title { font-size: 1rem; color: var(--text-muted); letter-spacing: 3px; margin-bottom: 15px; border-left: 3px solid var(--neon-cyan); padding-left: 10px; }
+        
+        .schedule-grid { display: flex; flex-direction: column; gap: 18px; }
+
+        .list-card {
             background: rgba(255, 255, 255, 0.02);
             border-radius: 20px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 25px 30px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
             display: flex;
             align-items: center;
+            transition: transform 0.2s;
         }
+        .list-card:hover { background: rgba(255, 255, 255, 0.04); border-color: rgba(0, 243, 255, 0.2); }
 
-        .item-time {
-            font-family: 'Consolas', monospace;
-            font-size: 1.1rem;
-            color: var(--text-dim);
-            min-width: 70px;
-            border-right: 1px solid rgba(255,255,255,0.1);
-            margin-right: 20px;
-            padding-right: 15px;
-            text-align: right;
-        }
+        .card-time { font-family: monospace; font-size: 1.3rem; color: var(--text-muted); padding-right: 30px; border-right: 1px solid rgba(255,255,255,0.1); margin-right: 30px; }
+        .card-loc { font-family: monospace; font-size: 2.2rem; font-weight: 800; color: var(--neon-cyan); margin-bottom: 5px; display: block; }
+        .card-name { font-size: 1rem; color: var(--text-main); }
 
-        .item-info { flex-grow: 1; }
-        
-        /* 列表里的地点也是最大的 */
-        .item-loc {
-            font-family: 'Consolas', monospace;
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--accent-cyan);
-            display: block;
-            margin-bottom: 4px;
-        }
-        .item-class { font-size: 0.9rem; color: var(--text-dim); }
-
-        @media (max-width: 500px) {
-            .hero-loc { font-size: 3.5rem; }
-            .timer { font-size: 3rem; }
-            .item-loc { font-size: 1.5rem; }
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .time-num { font-size: 3rem; }
+            .target-loc { font-size: 3.5rem; }
+            .countdown-wrapper { gap: 5px; }
+            .time-block { padding: 10px; }
+            .card-loc { font-size: 1.5rem; }
+            .card-time { padding-right: 15px; margin-right: 15px; font-size: 1.1rem; }
+            .target-meta { flex-direction: column; gap: 5px; }
+            .meta-divider { display: none; }
         }
     </style>
 </head>
@@ -134,24 +190,48 @@
 
     <div class="container">
         <div class="header">
-            <div class="header-clock" id="header-clock">--:--:--</div>
-            <div class="header-date" id="header-date">--</div>
-        </div>
-
-        <div class="hero-card">
-            <div class="label-status" id="hero-label">倒计时</div>
-            <div class="timer" id="countdown">--:--:--</div>
-            
-            <div class="destination-box">
-                <div class="hero-loc" id="next-loc">--</div>
-                <div class="hero-class" id="next-name">正在检索目标地点...</div>
-                <div class="hero-teacher" id="next-teacher">--</div>
+            <div class="header-left">
+                <div class="header-clock" id="header-clock">00:00:00</div>
+                <div class="header-date" id="header-date">--月--日 星期-</div>
+            </div>
+            <div class="header-status">
+                <span class="pulse-dot"></span> SYSTEM ONLINE
             </div>
         </div>
 
-        <div>
-            <div class="list-header" id="list-title">当天后续日程</div>
-            <div class="schedule-list" id="schedule-list">
+        <div class="hero-card">
+            <div class="hero-label" id="hero-label">距离下个坐标点还有</div>
+            
+            <div class="countdown-wrapper" id="countdown-container">
+                <div class="time-block">
+                    <span class="time-num" id="cd-h">00</span>
+                    <span class="time-unit">时</span>
+                </div>
+                <div class="time-colon">:</div>
+                <div class="time-block">
+                    <span class="time-num" id="cd-m">00</span>
+                    <span class="time-unit">分</span>
+                </div>
+                <div class="time-colon">:</div>
+                <div class="time-block">
+                    <span class="time-num" id="cd-s">00</span>
+                    <span class="time-unit">秒</span>
+                </div>
+            </div>
+            
+            <div class="destination-display">
+                <div class="target-loc" id="next-loc">--</div>
+                <div class="target-meta">
+                    <span id="next-name">正在同步课表数据...</span>
+                    <span class="meta-divider">|</span>
+                    <span class="target-teacher" id="next-teacher">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="list-section">
+            <div class="list-title" id="list-title">今日后续进程</div>
+            <div class="schedule-grid" id="schedule-list">
                 </div>
         </div>
     </div>
@@ -180,7 +260,7 @@
             const currentTime = now.getHours() * 60 + now.getMinutes();
 
             let upcoming = [];
-            let targetDayOffset = -1; // 锁定“下节课”所在的那一天
+            let targetDayOffset = -1;
 
             // 搜索逻辑
             for(let i=0; i<7; i++) {
@@ -200,21 +280,17 @@
                     endDate.setDate(now.getDate() + i);
                     endDate.setHours(eh, em, 0, 0);
 
-                    // 如果是今天，跳过已经结束的课
                     if(i === 0 && currentTime > (eh * 60 + em)) return;
 
-                    // 锁定我们要找的“那一天”
                     if (targetDayOffset === -1) {
                         targetDayOffset = i;
                     }
 
-                    // 只把“那一天”的课放进数组，其他的统统不要
                     if (i === targetDayOffset) {
                         upcoming.push({...c, targetDate, endDate});
                     }
                 });
 
-                // 一旦找到了目标天，收集完数据就跳出循环
                 if (targetDayOffset !== -1) break;
             }
 
@@ -224,52 +300,65 @@
                 const diff = next.targetDate - now;
                 const inProgress = now >= next.targetDate && now <= next.endDate;
 
-                // 主面板状态
+                const cdContainer = document.getElementById('countdown-container');
+
                 if(inProgress) {
-                    document.getElementById('hero-label').innerText = "当前位置";
-                    document.getElementById('countdown').innerText = "IN CLASS";
-                    document.getElementById('countdown').style.color = "#2ecc71"; // 绿色
+                    document.getElementById('hero-label').innerText = "📍 抵达坐标 · 课程进行中";
+                    cdContainer.innerHTML = `<div class="time-num" style="color: #2ecc71; font-size: 4rem; letter-spacing: 5px;">IN PROGRESS</div>`;
                 } else {
-                    document.getElementById('hero-label').innerText = "距离前往下一地点还有";
+                    document.getElementById('hero-label').innerText = "距离前往下一个坐标点还有";
                     const h = Math.floor(diff / 3600000);
                     const m = Math.floor((diff % 3600000) / 60000);
                     const s = Math.floor((diff % 60000) / 1000);
-                    document.getElementById('countdown').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-                    document.getElementById('countdown').style.color = "var(--text-main)";
+                    
+                    // 如果被替换成了 IN PROGRESS，需要恢复 HTML 结构
+                    if (!document.getElementById('cd-h')) {
+                        cdContainer.innerHTML = `
+                            <div class="time-block"><span class="time-num" id="cd-h"></span><span class="time-unit">时</span></div><div class="time-colon">:</div>
+                            <div class="time-block"><span class="time-num" id="cd-m"></span><span class="time-unit">分</span></div><div class="time-colon">:</div>
+                            <div class="time-block"><span class="time-num" id="cd-s"></span><span class="time-unit">秒</span></div>
+                        `;
+                    }
+                    
+                    document.getElementById('cd-h').innerText = String(h).padStart(2,'0');
+                    document.getElementById('cd-m').innerText = String(m).padStart(2,'0');
+                    document.getElementById('cd-s').innerText = String(s).padStart(2,'0');
                 }
 
-                // 核心：超大地点渲染
                 document.getElementById('next-loc').innerText = next.loc;
                 document.getElementById('next-name').innerText = next.name;
                 document.getElementById('next-teacher').innerText = next.teacher;
 
-                // 列表渲染 (只显示当天剩下的课)
+                // 列表渲染
                 const remainingClasses = upcoming.slice(1);
-                
                 if (remainingClasses.length > 0) {
-                    const dayName = targetDayOffset === 0 ? "今天" : dayStrs[next.targetDate.getDay()];
-                    document.getElementById('list-title').innerText = `${dayName} 后续日程`;
+                    const dayName = targetDayOffset === 0 ? "今日" : dayStrs[next.targetDate.getDay()];
+                    document.getElementById('list-title').innerText = `${dayName} 后续进程`;
                     
                     const listHtml = remainingClasses.map(c => `
-                        <div class="class-item">
-                            <div class="item-time">${c.start}</div>
-                            <div class="item-info">
-                                <span class="item-loc">${c.loc}</span>
-                                <span class="item-class">${c.name}</span>
+                        <div class="list-card">
+                            <div class="card-time">${c.start}</div>
+                            <div>
+                                <span class="card-loc">${c.loc}</span>
+                                <span class="card-name">${c.name}</span>
                             </div>
                         </div>
                     `).join('');
                     document.getElementById('schedule-list').innerHTML = listHtml;
                 } else {
-                    document.getElementById('list-title').innerText = "当天已无后续课程";
-                    document.getElementById('schedule-list').innerHTML = "";
+                    document.getElementById('list-title').innerText = "进程清空";
+                    document.getElementById('schedule-list').innerHTML = `
+                        <div class="list-card" style="opacity: 0.5; justify-content: center;">
+                            <span class="card-name">当日已无后续课程安排</span>
+                        </div>
+                    `;
                 }
 
             } else {
-                document.getElementById('hero-label').innerText = "状态";
-                document.getElementById('countdown').innerText = "FREE";
-                document.getElementById('next-loc').innerText = "宿舍";
-                document.getElementById('next-name').innerText = "暂无排课数据";
+                document.getElementById('hero-label').innerText = "系统空闲";
+                document.getElementById('countdown-container').innerHTML = `<div class="time-num">ALL CLEAR</div>`;
+                document.getElementById('next-loc').innerText = "N/A";
+                document.getElementById('next-name').innerText = "暂无排课";
                 document.getElementById('next-teacher').innerText = "--";
                 document.getElementById('schedule-list').innerHTML = "";
             }
