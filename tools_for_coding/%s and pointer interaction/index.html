@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C语言指针与 printf 底层原理解析</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --panel-bg: #252526;
+            --text-color: #d4d4d4;
+            --highlight-color: #007acc;
+            --accent-color: #4CAF50;
+            --danger-color: #f44336;
+            --memory-border: #444;
+            --terminal-bg: #000;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Consolas, 'Courier New', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 { margin: 0; color: #fff; font-weight: 500;}
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* 左侧：代码面板 */
+        .code-panel {
+            background-color: var(--panel-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .code-line {
+            display: flex;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            position: relative;
+        }
+
+        .code-line.active {
+            background-color: rgba(0, 122, 204, 0.3);
+            border-left: 4px solid var(--highlight-color);
+        }
+
+        .code-line.active::before {
+            content: '👉';
+            position: absolute;
+            left: -25px;
+            animation: bounce 1s infinite alternate;
+        }
+
+        .line-num {
+            color: #858585;
+            margin-right: 15px;
+            user-select: none;
+            width: 20px;
+            text-align: right;
+        }
+
+        /* 语法高亮 */
+        .keyword { color: #569cd6; }
+        .type { color: #4ec9b0; }
+        .string { color: #ce9178; }
+        .function { color: #dcdcaa; }
+
+        /* 右侧：交互与展示面板 */
+        .interactive-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 解释框 */
+        .explanation-box {
+            background-color: var(--panel-bg);
+            border-left: 4px solid var(--accent-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            min-height: 80px;
+            font-size: 16px;
+            line-height: 1.5;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        /* 内存可视化 */
+        .memory-container {
+            background-color: var(--panel-bg);
+            padding: 30px 20px 50px 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .memory-track {
+            display: flex;
+            gap: 5px;
+            position: relative;
+        }
+
+        .memory-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+            transition: transform 0.3s;
+        }
+
+        .memory-addr {
+            font-size: 12px;
+            color: #858585;
+            margin-bottom: 5px;
+        }
+
+        .memory-value {
+            border: 2px solid var(--memory-border);
+            border-radius: 4px;
+            width: 100%;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: #1e1e1e;
+            transition: all 0.3s;
+        }
+
+        .memory-cell.active .memory-value {
+            border-color: var(--accent-color);
+            background-color: rgba(76, 175, 80, 0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(76,175,80,0.5);
+        }
+        
+        .memory-cell.active-stop .memory-value {
+            border-color: var(--danger-color);
+            background-color: rgba(244, 67, 54, 0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(244,67,54,0.5);
+        }
+
+        /* 动态指针箭头 */
+        .memory-cell.active::after, .memory-cell.active-stop::after {
+            content: '⬆ 游标读取';
+            position: absolute;
+            bottom: -30px;
+            color: var(--accent-color);
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            animation: slideUp 0.5s ease;
+        }
+
+        .memory-cell.active-stop::after {
+            content: '🛑 遇到 \\0 刹车';
+            color: var(--danger-color);
+        }
+
+        /* 终端面板 */
+        .terminal {
+            background-color: var(--terminal-bg);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: Consolas, monospace;
+            min-height: 120px;
+            box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+        }
+
+        .terminal-header {
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .terminal-output {
+            color: #4CAF50;
+            white-space: pre-wrap;
+            font-size: 16px;
+        }
+
+        /* 控制按钮 */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: white;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover:not(:disabled) { background-color: #444; transform: translateY(-2px); }
+        button:active:not(:disabled) { transform: translateY(0); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-primary { background-color: var(--highlight-color); }
+        .btn-primary:hover:not(:disabled) { background-color: #005f9e; }
+        .btn-reset { background-color: #d32f2f; }
+        .btn-reset:hover:not(:disabled) { background-color: #b71c1c; }
+
+        @keyframes bounce {
+            from { transform: translateX(0); }
+            to { transform: translateX(5px); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>printf("%s") 内存级执行过程演示</h1>
+    </div>
+
+    <div class="container">
+        <div class="code-panel">
+            <div class="code-line" id="line-1"><span class="line-num">1</span><span class="type">int</span> <span class="function">main</span>()</div>
+            <div class="code-line" id="line-2"><span class="line-num">2</span>{</div>
+            <div class="code-line" id="line-3"><span class="line-num">3</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="type">char</span> *pStr = <span class="string">"HelloWorld\n"</span>;</div>
+            <div class="code-line" id="line-4"><span class="line-num">4</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="function">printf</span>(<span class="string">"%s\n"</span>, pStr);</div>
+            <div class="code-line" id="line-5"><span class="line-num">5</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="number">0</span>;</div>
+            <div class="code-line" id="line-6"><span class="line-num">6</span>}</div>
+        </div>
+
+        <div class="interactive-panel">
+            
+            <div class="explanation-box" id="explanation">
+                点击“下一步”开始执行程序...
+            </div>
+
+            <div class="memory-container">
+                <div style="color:#aaa; font-size:12px; margin-bottom:10px;">只读数据段内存视图 (起始地址: 0x1000)</div>
+                <div class="memory-track" id="memory-track">
+                    </div>
+            </div>
+
+            <div class="terminal">
+                <div class="terminal-header">Terminal / Console</div>
+                <div class="terminal-output" id="terminal-output"></div><span style="color:#aaa; animation: blink 1s infinite;">_</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="btn-reset" class="btn-reset">↺ 重置 (Reset)</button>
+        <button id="btn-prev" disabled>⬅ 上一步 (Prev)</button>
+        <button id="btn-next" class="btn-primary">下一步 (Next) ➡</button>
+    </div>
+
+    <style>
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    </style>
+
+    <script>
+        // 核心数据
+        const memoryData = ['H', 'e', 'l', 'l', 'o', 'W', 'o', 'r', 'l', 'd', '\\n', '\\0', '?', '?'];
+        const baseAddr = 0x1000;
+        
+        // DOM 元素
+        const memoryTrack = document.getElementById('memory-track');
+        const explanationBox = document.getElementById('explanation');
+        const terminalOutput = document.getElementById('terminal-output');
+        const btnNext = document.getElementById('btn-next');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnReset = document.getElementById('btn-reset');
+
+        // 初始化内存视图
+        function initMemoryUI() {
+            memoryTrack.innerHTML = '';
+            memoryData.forEach((char, index) => {
+                const addr = (baseAddr + index).toString(16).toUpperCase();
+                const cell = document.createElement('div');
+                cell.className = 'memory-cell';
+                cell.id = `mem-${index}`;
+                cell.innerHTML = `
+                    <div class="memory-addr">0x${addr}</div>
+                    <div class="memory-value">${char}</div>
+                `;
+                memoryTrack.appendChild(cell);
+            });
+        }
+
+        // --- 构建状态机 (State Machine) ---
+        // 预先计算好每一步的状态，实现完美的“上一步/下一步”
+        const states = [];
+        
+        // 步骤 0: 初始状态
+        states.push({ line: 1, memFocus: -1, term: "", exp: "<strong>程序启动：</strong>操作系统为程序分配内存，进入主函数 <code>main()</code>。" });
+        
+        // 步骤 1: 变量声明与赋值
+        states.push({ line: 3, memFocus: -1, term: "", exp: "<strong>执行第 3 行：</strong>在内存的只读数据段中存入字符串 <code>\"HelloWorld\\n\\0\"</code>。同时在栈区创建指针变量 <code>pStr</code>，将首地址 <code>0x1000</code> 赋给它。" });
+
+        // 步骤 2开始: printf 循环
+        states.push({ line: 4, memFocus: -1, term: "", exp: "<strong>执行第 4 行：</strong>调用 <code>printf</code>。遇到 <code>%s</code>，printf 开启“顺藤摸瓜”模式，接收到了起始地址 <code>0x1000</code>。" });
+
+        let currentTerminal = "";
+        for (let i = 0; i < memoryData.length; i++) {
+            let char = memoryData[i];
+            let addr = (baseAddr + i).toString(16).toUpperCase();
+            
+            if (char === '\\0') {
+                states.push({ 
+                    line: 4, memFocus: i, isStop: true, term: currentTerminal, 
+                    exp: `<span style='color:var(--danger-color)'><strong>【红灯触发！】</strong></span>内部游标在 <code>0x${addr}</code> 读取到了 <code>\\0</code> (空字符)。<br>printf 立即停止读取，拒绝访问后续内存。<code>%s</code> 的任务圆满完成！`
+                });
+                break; // 停止循环
+            } else {
+                states.push({ 
+                    line: 4, memFocus: i, term: currentTerminal, 
+                    exp: `<strong>【内部解引用】</strong>printf 内部游标移动到 <code>0x${addr}</code>，使用 <code>*</code> 取出值 <code>'${char}'</code>。<br>检查发现不是 <code>\\0</code>，准备打印...`
+                });
+                
+                // 处理换行符在终端的显示
+                currentTerminal += (char === '\\n') ? "<br>" : char;
+                
+                states.push({ 
+                    line: 4, memFocus: i, term: currentTerminal, 
+                    exp: `<strong>【输出并移位】</strong>成功将 <code>'${char}'</code> 输出到屏幕。内部游标地址 +1，准备读取下一个字节。`
+                });
+            }
+        }
+
+        // printf 外部自带的 \n
+        currentTerminal += "<br>";
+        states.push({ line: 4, memFocus: -1, term: currentTerminal, exp: "<strong>【收尾工作】</strong><code>%s</code> 任务完成后，printf 继续读取格式控制符里剩下的内容。发现还有一个 <code>\\n</code>，打印输出换行。" });
+        
+        // return 0
+        states.push({ line: 5, memFocus: -1, term: currentTerminal, exp: "<strong>程序结束：</strong>执行 <code>return 0;</code>，内存被操作系统回收。" });
+
+        // --- 核心渲染引擎 ---
+        let currentIndex = 0;
+
+        function renderState() {
+            const state = states[currentIndex];
+
+            // 1. 更新代码高亮
+            document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+            document.getElementById(`line-${state.line}`).classList.add('active');
+
+            // 2. 更新解释文本
+            explanationBox.innerHTML = state.exp;
+
+            // 3. 更新终端
+            terminalOutput.innerHTML = state.term;
+
+            // 4. 更新内存游标高亮
+            document.querySelectorAll('.memory-cell').forEach(el => {
+                el.classList.remove('active', 'active-stop');
+            });
+            if (state.memFocus !== -1) {
+                const activeCell = document.getElementById(`mem-${state.memFocus}`);
+                if (state.isStop) {
+                    activeCell.classList.add('active-stop');
+                } else {
+                    activeCell.classList.add('active');
+                }
+                // 让内存条自动滚动到可视区域
+                activeCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+
+            // 5. 更新按钮状态
+            btnPrev.disabled = currentIndex === 0;
+            btnNext.disabled = currentIndex === states.length - 1;
+            
+            if(currentIndex === states.length - 1) {
+                btnNext.innerHTML = "执行完毕 ✓";
+                btnNext.classList.remove('btn-primary');
+            } else {
+                btnNext.innerHTML = "下一步 (Next) ➡";
+                btnNext.classList.add('btn-primary');
+            }
+        }
+
+        // 绑定事件
+        btnNext.addEventListener('click', () => {
+            if (currentIndex < states.length - 1) {
+                currentIndex++;
+                renderState();
+            }
+        });
+
+        btnPrev.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderState();
+            }
+        });
+
+        btnReset.addEventListener('click', () => {
+            currentIndex = 0;
+            renderState();
+            document.querySelector('.memory-container').scrollTo({left: 0, behavior: 'smooth'});
+        });
+
+        // 页面加载完成执行
+        window.onload = () => {
+            initMemoryUI();
+            renderState();
+        };
+    </script>
+</body>
+</html>
