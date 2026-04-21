@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C语言 双指针字符串翻转 内存级演示</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --panel-bg: #252526;
+            --text-color: #d4d4d4;
+            --head-color: #4CAF50; /* pHead 的绿色 */
+            --tail-color: #00bcd4; /* pTail 的亮蓝色 */
+            --write-color: #f44336; /* 修改数据时的警示色 */
+            --memory-border: #444;
+            --terminal-bg: #000;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Consolas, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden; /* 核心锁：防止嵌套网页左右漂移 */
+        }
+
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; color: #fff; font-weight: 500;}
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 1300px;
+        }
+
+        /* --- 左侧：代码面板 --- */
+        .code-panel {
+            background-color: var(--panel-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            overflow-y: auto;
+        }
+
+        .code-line {
+            display: block; /* 保证文本排版正常 */
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.4;
+            transition: background-color 0.3s;
+            position: relative;
+        }
+
+        .code-line.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #fff;
+        }
+
+        .code-line.active::before {
+            content: '👉';
+            position: absolute;
+            left: -25px;
+            animation: bounce 1s infinite alternate;
+        }
+
+        .line-num {
+            display: inline-block;
+            color: #858585;
+            margin-right: 15px;
+            user-select: none;
+            width: 25px;
+            text-align: right;
+        }
+
+        .keyword { color: #c586c0; }
+        .type { color: #569cd6; }
+        .string { color: #ce9178; }
+        .function { color: #dcdcaa; }
+
+        /* --- 右侧：交互与展示面板 --- */
+        .interactive-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 0;
+        }
+
+        /* 解释框与临时变量框 */
+        .dashboard {
+            display: flex;
+            gap: 15px;
+        }
+
+        .explanation-box {
+            flex: 1;
+            background-color: var(--panel-bg);
+            border-left: 4px solid var(--head-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            min-height: 70px;
+            font-size: 16px;
+            line-height: 1.5;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .var-box {
+            background-color: var(--panel-bg);
+            border: 2px dashed #666;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+        }
+
+        .var-title { font-size: 12px; color: #aaa; margin-bottom: 5px; }
+        .var-value { font-size: 24px; font-family: monospace; font-weight: bold; color: #fff; }
+
+        /* 内存可视化 */
+        .memory-container {
+            background-color: var(--panel-bg);
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .memory-track {
+            display: flex;
+            gap: 8px;
+            padding-bottom: 40px; /* 给下方指针预留空间 */
+        }
+
+        .memory-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 50px;
+            position: relative;
+        }
+
+        .memory-addr { font-size: 12px; color: #858585; margin-bottom: 5px; }
+
+        .memory-value {
+            border: 2px solid var(--memory-border);
+            border-radius: 6px;
+            width: 100%;
+            height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: monospace;
+            font-size: 22px;
+            font-weight: bold;
+            background-color: #1e1e1e;
+            transition: all 0.3s;
+        }
+
+        /* 写入数据时的动画 */
+        .memory-value.write-flash {
+            background-color: rgba(244, 67, 54, 0.3);
+            border-color: var(--write-color);
+            transform: scale(1.1);
+            color: #fff;
+        }
+
+        /* 指针容器 */
+        .pointers {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            position: absolute;
+            bottom: -35px;
+            width: 100%;
+            height: 30px;
+        }
+
+        .ptr {
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 3px;
+            animation: slideUp 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .ptr-head { color: var(--head-color); border: 1px solid var(--head-color); background: rgba(76, 175, 80, 0.1); }
+        .ptr-tail { color: var(--tail-color); border: 1px solid var(--tail-color); background: rgba(0, 188, 212, 0.1); }
+
+        /* 终端 */
+        .terminal {
+            background-color: var(--terminal-bg);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: Consolas, monospace;
+            min-height: 80px;
+            box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+        }
+        .terminal-header { color: #aaa; font-size: 12px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .terminal-output { color: #4CAF50; white-space: pre-wrap; font-size: 16px; line-height: 1.4; }
+
+        /* 按钮 */
+        .controls { display: flex; justify-content: center; gap: 15px; margin-top: 20px; width: 100%; }
+        button {
+            padding: 10px 25px; font-size: 16px; cursor: pointer; border: none;
+            border-radius: 5px; background-color: #333; color: white; font-weight: bold;
+            transition: all 0.2s;
+        }
+        button:hover:not(:disabled) { background-color: #555; transform: translateY(-2px); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background-color: #007acc; }
+        .btn-primary:hover:not(:disabled) { background-color: #005f9e; }
+        .btn-reset { background-color: #d32f2f; }
+
+        @keyframes bounce { from { transform: translateX(0); } to { transform: translateX(5px); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } .dashboard { flex-direction: column; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>双指针字符串翻转 (Two-Pointer Reversal)</h1>
+    </div>
+
+    <div class="container">
+        <div class="code-panel">
+<div class="code-line" id="line-1"><span class="line-num">1</span><span class="keyword">#include</span> &lt;stdio.h&gt;</div>
+<div class="code-line" id="line-2"><span class="line-num">2</span><span class="type">int</span> <span class="function">main</span>()</div>
+<div class="code-line" id="line-3"><span class="line-num">3</span>{</div>
+<div class="code-line" id="line-4"><span class="line-num">4</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="type">char</span> str[] = <span class="string">"dlrowolleh"</span>;</div>
+<div class="code-line" id="line-5"><span class="line-num">5</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="function">puts</span>(str);</div>
+<div class="code-line" id="line-6"><span class="line-num">6</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="type">char</span>* pHead = str;</div>
+<div class="code-line" id="line-7"><span class="line-num">7</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="type">char</span>* pTail = str;</div>
+<div class="code-line" id="line-8"><span class="line-num">8</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">while</span> (*pTail)</div>
+<div class="code-line" id="line-9"><span class="line-num">9</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pTail++;</div>
+<div class="code-line" id="line-10"><span class="line-num">10</span>&nbsp;&nbsp;&nbsp;&nbsp;pTail--;</div>
+<div class="code-line" id="line-11"><span class="line-num">11</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">while</span> (pHead &lt;= pTail)</div>
+<div class="code-line" id="line-12"><span class="line-num">12</span>&nbsp;&nbsp;&nbsp;&nbsp;{</div>
+<div class="code-line" id="line-13"><span class="line-num">13</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="type">char</span> tmp = *pHead;</div>
+<div class="code-line" id="line-14"><span class="line-num">14</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*pHead = *pTail;</div>
+<div class="code-line" id="line-15"><span class="line-num">15</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*pTail = tmp;</div>
+<div class="code-line" id="line-16"><span class="line-num">16</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pHead++;</div>
+<div class="code-line" id="line-17"><span class="line-num">17</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pTail--;</div>
+<div class="code-line" id="line-18"><span class="line-num">18</span>&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div class="code-line" id="line-19"><span class="line-num">19</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="function">puts</span>(str);</div>
+<div class="code-line" id="line-20"><span class="line-num">20</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="number">0</span>;</div>
+<div class="code-line" id="line-21"><span class="line-num">21</span>}</div>
+        </div>
+
+        <div class="interactive-panel">
+            <div class="dashboard">
+                <div class="explanation-box" id="explanation">点击“下一步”开始执行程序...</div>
+                <div class="var-box">
+                    <div class="var-title">临时变量 char tmp</div>
+                    <div class="var-value" id="tmp-val" style="color: #666;">-</div>
+                </div>
+            </div>
+
+            <div class="memory-container" id="mem-container">
+                <div style="color:#aaa; font-size:12px; margin-bottom:10px;">栈区内存视图 (数组 str 首地址假设为: 0x1000)</div>
+                <div class="memory-track" id="memory-track">
+                    </div>
+            </div>
+
+            <div class="terminal">
+                <div class="terminal-header">Terminal / Console</div>
+                <div class="terminal-output" id="terminal-output"></div><span style="color:#aaa; animation: blink 1s infinite;">_</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="btn-reset" class="btn-reset">↺ 重置 (Reset)</button>
+        <button id="btn-prev" disabled>⬅ 上一步 (Prev)</button>
+        <button id="btn-next" class="btn-primary">下一步 (Next) ➡</button>
+    </div>
+
+    <script>
+        // 核心运行模拟器
+        let states = [];
+        let baseAddr = 0x1000;
+        let memory = ['d','l','r','o','w','o','l','l','e','h','\\0'];
+        
+        // 预生成所有状态，确保上一步/下一步逻辑完美
+        function generateStates() {
+            states = [];
+            let mem = [...memory];
+            let term = "";
+            let h = -1, t = -1;
+            let tmpStr = "-";
+            let writeIdx = -1;
+
+            const addState = (line, exp, write = -1) => {
+                states.push({ line, mem: [...mem], h, t, tmp: tmpStr, term, exp, writeIdx: write });
+            };
+
+            addState(4, "<strong>程序启动：</strong>在栈区分配了 11 个字节的数组空间，存入待翻转的字符串和隐藏的 <code>\\0</code>。");
+            
+            term += "dlrowolleh\n";
+            addState(5, "<strong>执行 puts：</strong>顺藤摸瓜打印出原字符串，并自动附带一个换行符。");
+
+            h = 0;
+            addState(6, "<strong>头指针定位：</strong><code>pHead</code> 指向数组首元素。");
+
+            t = 0;
+            addState(7, "<strong>尾指针定位：</strong><code>pTail</code> 初始化也指向数组首元素。");
+
+            // while (*pTail) pTail++;
+            addState(8, "<strong>寻找末尾：</strong>开始循环。只要 <code>*pTail</code> 不是 <code>\\0</code>，指针就继续往后走。");
+            while (mem[t] !== '\\0') {
+                t++;
+                // 为了演示流畅，省略中间每一步的说明，只在到达末尾时展示
+            }
+            addState(9, `<strong>循环结束：</strong><code>pTail</code> 跑到了索引 ${t} 的位置，解引用发现了 <code>\\0</code>。`);
+
+            t--;
+            addState(10, "<strong>尾指针回退：</strong><code>pTail--</code>，向左退一格，精准指向字符串的最后一个有效字母。");
+
+            // while (pHead <= pTail) 交换核心
+            while (h <= t) {
+                addState(11, `<strong>相遇判断：</strong><code>pHead</code>(${h}) &lt;= <code>pTail</code>(${t}) 成立，准备交换两端的数据。`);
+                
+                tmpStr = mem[h];
+                addState(13, `<strong>暂存数据：</strong>将头指针指向的 <code>'${mem[h]}'</code> 存入临时变量 <code>tmp</code>。`);
+
+                mem[h] = mem[t];
+                addState(14, `<strong>左侧覆盖：</strong>将尾部的 <code>'${mem[t]}'</code> 覆盖写入到头部！`, h);
+
+                mem[t] = tmpStr;
+                addState(15, `<strong>右侧补齐：</strong>将 <code>tmp</code> 中的 <code>'${tmpStr}'</code> 写入到尾部！一次数据交换完成。`, t);
+
+                h++;
+                addState(16, "<strong>头指针推进：</strong><code>pHead++</code>，向右移动一格。");
+
+                t--;
+                addState(17, "<strong>尾指针推进：</strong><code>pTail--</code>，向左移动一格。");
+            }
+            
+            addState(11, `<strong>交换完毕：</strong>此时 <code>pHead</code>(${h}) &gt; <code>pTail</code>(${t})，两指针错开，循环正式结束！全量翻转完成。`);
+
+            term += "helloworld\n";
+            addState(19, "<strong>输出成果：</strong>再次调用 <code>puts(str)</code>，打印出翻转后变成正序的字符串。");
+            addState(20, "<strong>程序退出：</strong><code>return 0;</code> 运行圆满结束！");
+        }
+
+        // --- 渲染引擎 ---
+        const memTrack = document.getElementById('memory-track');
+        const expBox = document.getElementById('explanation');
+        const termOut = document.getElementById('terminal-output');
+        const tmpVal = document.getElementById('tmp-val');
+        const memContainer = document.getElementById('mem-container');
+        
+        let curIdx = 0;
+
+        function render() {
+            const s = states[curIdx];
+
+            // 1. 代码高亮
+            document.querySelectorAll('.code-line').forEach(e => e.classList.remove('active'));
+            document.getElementById(`line-${s.line}`).classList.add('active');
+
+            // 2. 面板更新
+            expBox.innerHTML = s.exp;
+            termOut.innerText = s.term;
+            tmpVal.innerText = s.tmp === '-' ? '-' : `'${s.tmp}'`;
+            tmpVal.style.color = s.tmp === '-' ? '#666' : '#fff';
+
+            // 3. 内存渲染
+            memTrack.innerHTML = '';
+            s.mem.forEach((char, i) => {
+                const isWrite = (s.writeIdx === i);
+                const cell = document.createElement('div');
+                cell.className = 'memory-cell';
+                
+                let pointersHTML = '';
+                if(s.h === i) pointersHTML += `<div class="ptr ptr-head">⬆ pHead</div>`;
+                if(s.t === i) pointersHTML += `<div class="ptr ptr-tail">⬆ pTail</div>`;
+
+                cell.innerHTML = `
+                    <div class="memory-addr">0x${(baseAddr + i).toString(16).toUpperCase()}</div>
+                    <div class="memory-value ${isWrite ? 'write-flash' : ''}">${char}</div>
+                    <div class="pointers">${pointersHTML}</div>
+                `;
+                memTrack.appendChild(cell);
+            });
+
+            // 4. 自动滚动视觉跟踪
+            if (s.h !== -1) {
+                // 如果头尾都有，居中显示两者之间的区域；如果只有一个，跟踪那个。
+                const targetIdx = Math.max(0, Math.floor((s.h + Math.max(0, s.t)) / 2));
+                const targetCell = memTrack.children[targetIdx];
+                if(targetCell) {
+                    const scrollPos = targetCell.offsetLeft - memContainer.offsetWidth / 2 + targetCell.offsetWidth / 2;
+                    memContainer.scrollTo({ left: scrollPos, behavior: 'smooth' });
+                }
+            }
+
+            // 5. 按钮控制
+            document.getElementById('btn-prev').disabled = curIdx === 0;
+            const nextBtn = document.getElementById('btn-next');
+            if (curIdx === states.length - 1) {
+                nextBtn.disabled = true;
+                nextBtn.innerHTML = "执行完毕 ✓";
+                nextBtn.classList.remove('btn-primary');
+            } else {
+                nextBtn.disabled = false;
+                nextBtn.innerHTML = "下一步 (Next) ➡";
+                nextBtn.classList.add('btn-primary');
+            }
+        }
+
+        // 绑定事件
+        document.getElementById('btn-next').onclick = () => { if(curIdx < states.length - 1) { curIdx++; render(); } };
+        document.getElementById('btn-prev').onclick = () => { if(curIdx > 0) { curIdx--; render(); } };
+        document.getElementById('btn-reset').onclick = () => { curIdx = 0; memContainer.scrollTo({left:0}); render(); };
+
+        // 启动
+        generateStates();
+        render();
+    </script>
+</body>
+</html>
