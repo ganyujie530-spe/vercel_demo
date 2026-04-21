@@ -26,6 +26,7 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            overflow-x: hidden; /* 【关键修复】：锁死整个页面的横向滚动，防止界面平移漂移 */
         }
 
         .header {
@@ -53,13 +54,14 @@
         }
 
         .code-line {
-            display: flex;
+            display: block; /* 【上次的修复】：恢复正常的文本排版 */
             padding: 4px 8px;
             border-radius: 4px;
             font-family: Consolas, 'Courier New', monospace;
             font-size: 16px;
             transition: background-color 0.3s;
             position: relative;
+            line-height: 1.5;
         }
 
         .code-line.active {
@@ -75,6 +77,7 @@
         }
 
         .line-num {
+            display: inline-block; /* 【上次的修复】：保证行号宽度生效 */
             color: #858585;
             margin-right: 15px;
             user-select: none;
@@ -93,6 +96,7 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            min-width: 0; /* 防止子元素撑破 Grid 布局 */
         }
 
         /* 解释框 */
@@ -115,12 +119,14 @@
             border-radius: 8px;
             overflow-x: auto;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: relative;
         }
 
         .memory-track {
             display: flex;
             gap: 5px;
             position: relative;
+            padding: 0 10px;
         }
 
         .memory-cell {
@@ -277,7 +283,7 @@
                 点击“下一步”开始执行程序...
             </div>
 
-            <div class="memory-container">
+            <div class="memory-container" id="mem-container">
                 <div style="color:#aaa; font-size:12px; margin-bottom:10px;">只读数据段内存视图 (起始地址: 0x1000)</div>
                 <div class="memory-track" id="memory-track">
                     </div>
@@ -307,6 +313,7 @@
         
         // DOM 元素
         const memoryTrack = document.getElementById('memory-track');
+        const memContainer = document.getElementById('mem-container');
         const explanationBox = document.getElementById('explanation');
         const terminalOutput = document.getElementById('terminal-output');
         const btnNext = document.getElementById('btn-next');
@@ -392,7 +399,7 @@
             // 3. 更新终端
             terminalOutput.innerHTML = state.term;
 
-            // 4. 更新内存游标高亮
+            // 4. 更新内存游标高亮与安全滚动
             document.querySelectorAll('.memory-cell').forEach(el => {
                 el.classList.remove('active', 'active-stop');
             });
@@ -403,8 +410,10 @@
                 } else {
                     activeCell.classList.add('active');
                 }
-                // 让内存条自动滚动到可视区域
-                activeCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                
+                // 【关键修复】：手动计算滚动位置，替代原有的 scrollIntoView，彻底防止页面漂移
+                const scrollTarget = activeCell.offsetLeft - memContainer.offsetWidth / 2 + activeCell.offsetWidth / 2;
+                memContainer.scrollTo({ left: scrollTarget, behavior: 'smooth' });
             }
 
             // 5. 更新按钮状态
@@ -438,7 +447,7 @@
         btnReset.addEventListener('click', () => {
             currentIndex = 0;
             renderState();
-            document.querySelector('.memory-container').scrollTo({left: 0, behavior: 'smooth'});
+            memContainer.scrollTo({left: 0, behavior: 'smooth'});
         });
 
         // 页面加载完成执行
