@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数电逻辑化简动态演示 - 宇杰的实验室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .highlight { background-color: #fef08a; transition: all 0.3s ease; transform: scale(1.05); border: 2px solid #eab308; }
+        .arrow-active { opacity: 1; stroke-dashoffset: 0; transition: all 0.5s ease; }
+        .step-content { min-height: 120px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans p-4 md:p-10">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-10 text-center">
+            <h1 class="text-3xl font-bold text-indigo-600">Digital Logic Visualizer</h1>
+            <p class="text-slate-500 mt-2">交互式逻辑化简过程演示</p>
+        </header>
+
+        <div class="flex justify-center gap-4 mb-8">
+            <button onclick="switchMode('simple')" id="btn-simple" class="px-6 py-2 rounded-full bg-indigo-600 text-white shadow-lg transition">简单：吸收律</button>
+            <button onclick="switchMode('complex')" id="btn-complex" class="px-6 py-2 rounded-full bg-slate-200 text-slate-700 hover:bg-slate-300 transition">复杂：3变量XOR</button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-slate-100">
+            
+            <div class="flex justify-center items-center mb-8 bg-slate-50 rounded-xl p-6 relative overflow-hidden">
+                <div id="visual-simple" class="text-4xl font-mono flex items-center gap-2">
+                    <span id="term-1" class="p-2 rounded">A</span>
+                    <span>+</span>
+                    <span id="term-2" class="p-2 rounded"><span class="border-t-2 border-slate-800">A</span>B</span>
+                    <span class="text-indigo-500 mx-2">⇒</span>
+                    <span id="term-result" class="p-2 rounded opacity-20">A + B</span>
+                    
+                    <svg class="absolute top-0 left-0 w-full h-full pointer-events-none" id="svg-layer">
+                        <path id="arrow-path" d="" fill="none" stroke="#6366f1" stroke-width="3" marker-end="url(#arrowhead)" opacity="0"/>
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#6366f1" />
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+
+                <div id="visual-complex" class="hidden grid grid-cols-4 gap-2 text-center">
+                    <div class="col-span-4 grid grid-cols-4 border-2 border-slate-300 rounded">
+                        <div id="k-001" class="p-4 border border-slate-200">1</div>
+                        <div id="k-010" class="p-4 border border-slate-200 bg-white">0</div>
+                        <div id="k-011" class="p-4 border border-slate-200 bg-white">1</div>
+                        <div id="k-100" class="p-4 border border-slate-200 bg-white">0</div>
+                    </div>
+                    <p class="col-span-4 text-sm text-slate-400 mt-2">K-Map 棋盘分布识别</p>
+                </div>
+            </div>
+
+            <div class="step-content border-l-4 border-indigo-500 pl-6 mb-8">
+                <h3 id="step-title" class="text-xl font-bold mb-2">步骤 1: 观察原始表达式</h3>
+                <p id="step-desc" class="text-slate-600 leading-relaxed">这是最常见的化简场景，A 加上一个包含 A-反面 的项。</p>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <button onclick="reset()" class="text-slate-400 hover:text-slate-600 font-medium">重置</button>
+                <div class="flex gap-4">
+                    <button id="prevBtn" onclick="prevStep()" class="px-5 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-30">上一步</button>
+                    <button id="nextBtn" onclick="nextStep()" class="px-8 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-md">下一步</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'simple';
+        let step = 0;
+
+        const data = {
+            simple: [
+                { title: "观察原始项", desc: "我们要简化 A + ĀB。注意 A 和 Ā 的互补关系。", action: () => { highlight('term-1'); highlight('term-2'); } },
+                { title: "应用分配律", desc: "逻辑上 A + ĀB 等价于 (A + Ā)(A + B)。", action: () => { drawArrow('term-1', 'term-2'); } },
+                { title: "根据互补律", desc: "我们知道 (A + Ā) 永远等于 1。", action: () => { document.getElementById('term-1').innerText = "(1)"; } },
+                { title: "最终简化", desc: "1 乘以任何项等于该项本身，所以剩下 A + B。", action: () => { document.getElementById('term-result').classList.replace('opacity-20', 'highlight'); } }
+            ],
+            complex: [
+                { title: "初始化卡诺图", desc: "填入三变量 XOR 的真值。发现 1 的分布非常特殊。", action: () => { showKMap(); } },
+                { title: "识别棋盘格模式", desc: "在卡诺图中，如果 1 呈对角线分布且互不相邻，无法直接合并。", action: () => { highlightKCells(['k-001', 'k-011']); } },
+                { title: "判定逻辑本质", desc: "这种跳跃分布是 XOR (异或) 逻辑的唯一特征指纹。", action: () => { /* 更多动效 */ } }
+            ]
+        };
+
+        function updateUI() {
+            const currentData = data[currentMode][step];
+            document.getElementById('step-title').innerText = `步骤 ${step + 1}: ${currentData.title}`;
+            document.getElementById('step-desc').innerText = currentData.desc;
+            currentData.action();
+            
+            document.getElementById('prevBtn').disabled = step === 0;
+            if (step === data[currentMode].length - 1) {
+                document.getElementById('nextBtn').innerText = "完成";
+            } else {
+                document.getElementById('nextBtn').innerText = "下一步";
+            }
+        }
+
+        function nextStep() {
+            if (step < data[currentMode].length - 1) {
+                step++;
+                updateUI();
+            }
+        }
+
+        function prevStep() {
+            if (step > 0) {
+                step--;
+                // 简化起见，reset后重跑一遍到当前步，或手动写逆向action
+                resetStateOnly();
+                for(let i=0; i<=step; i++) data[currentMode][i].action();
+                const currentData = data[currentMode][step];
+                document.getElementById('step-title').innerText = `步骤 ${step + 1}: ${currentData.title}`;
+                document.getElementById('step-desc').innerText = currentData.desc;
+            }
+        }
+
+        function highlight(id) {
+            document.getElementById(id).classList.add('highlight');
+        }
+
+        function drawArrow(fromId, toId) {
+            const arrow = document.getElementById('arrow-path');
+            arrow.setAttribute('d', 'M 50 80 Q 150 10 250 80'); // 演示用固定路径
+            arrow.setAttribute('opacity', '1');
+        }
+
+        function switchMode(m) {
+            currentMode = m;
+            document.getElementById('btn-simple').className = m === 'simple' ? 'px-6 py-2 rounded-full bg-indigo-600 text-white shadow-lg' : 'px-6 py-2 rounded-full bg-slate-200 text-slate-700';
+            document.getElementById('btn-complex').className = m === 'complex' ? 'px-6 py-2 rounded-full bg-indigo-600 text-white shadow-lg' : 'px-6 py-2 rounded-full bg-slate-200 text-slate-700';
+            
+            document.getElementById('visual-simple').classList.toggle('hidden', m !== 'simple');
+            document.getElementById('visual-complex').classList.toggle('hidden', m !== 'complex');
+            reset();
+        }
+
+        function resetStateOnly() {
+            // 清除所有高亮和状态
+            document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+            document.getElementById('arrow-path').setAttribute('opacity', '0');
+            document.getElementById('term-1').innerText = "A";
+            document.getElementById('term-result').classList.add('opacity-20');
+        }
+
+        function reset() {
+            step = 0;
+            resetStateOnly();
+            updateUI();
+        }
+
+        // 初始化
+        updateUI();
+    </script>
+</body>
+</html>
