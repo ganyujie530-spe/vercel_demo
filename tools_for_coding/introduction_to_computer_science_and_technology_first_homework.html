@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" style="scroll-snap-type: y mandatory; scroll-behavior: smooth;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,6 +22,9 @@
             font-family: 'Outfit', sans-serif;
             background-color: var(--bg-dark);
             color: #e2e8f0;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
         }
         
         .font-mono { font-family: 'JetBrains Mono', monospace; }
@@ -31,24 +34,17 @@
         ::-webkit-scrollbar-track { background: var(--bg-dark); }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--nvidia-green); }
-
-        /* Presentation Snap Setup */
-        .presentation-container {
-            height: 100vh;
-            scroll-snap-type: y mandatory;
-            overflow-y: scroll;
-            scroll-behavior: smooth;
-        }
         
         .slide {
             height: 100vh;
-            width: 100%;
+            width: 100vw;
             scroll-snap-align: start;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            overflow: hidden;
+            /* 防止内容溢出导致动画失效 */
+            overflow: hidden; 
         }
 
         /* Glassmorphism Cards */
@@ -66,7 +62,7 @@
         .intel-text { background: linear-gradient(90deg, #0071c5, #4bb4e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         .ambient-light {
-            position: absolute;
+            position: fixed; /* 固定背景光晕 */
             border-radius: 50%;
             filter: blur(120px);
             z-index: -1;
@@ -104,7 +100,7 @@
         }
     </style>
 </head>
-<body class="presentation-container">
+<body>
 
     <div class="ambient-light" style="top: -10%; left: -10%; width: 50vw; height: 50vw; background: var(--nvidia-green);"></div>
     <div class="ambient-light" style="bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: var(--intel-blue);"></div>
@@ -247,13 +243,13 @@
     </section>
 
     <script>
-        // 确保 DOM 加载完成后再初始化动画和图表
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化 AOS 动画
             AOS.init({
                 once: false,
                 mirror: true,
                 offset: 50,
+                duration: 800
             });
 
             // 动态生成右侧导航点
@@ -268,14 +264,14 @@
             });
 
             const dots = document.querySelectorAll('.progress-dot');
-            const presentationContainer = document.querySelector('.presentation-container');
 
-            // 滚动时更新导航点状态
-            presentationContainer.addEventListener('scroll', () => {
-                let current = '';
+            // 修复：监听原生的 window 滚动，而不是 container 滚动
+            window.addEventListener('scroll', () => {
+                let current = 0;
                 slides.forEach((slide, index) => {
                     const slideTop = slide.offsetTop;
-                    if (presentationContainer.scrollTop >= slideTop - 200) {
+                    // 判断当前滚动到了哪一页
+                    if (window.scrollY >= slideTop - window.innerHeight / 2) {
                         current = index;
                     }
                 });
@@ -284,68 +280,70 @@
             });
 
             // 初始化 Chart.js 雷达图
-            const ctx = document.getElementById('radarChart').getContext('2d');
-            Chart.defaults.color = 'rgba(255, 255, 255, 0.6)';
-            Chart.defaults.font.family = 'Outfit';
+            const ctx = document.getElementById('radarChart');
+            if(ctx) {
+                Chart.defaults.color = 'rgba(255, 255, 255, 0.6)';
+                Chart.defaults.font.family = 'Outfit';
 
-            new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['VRAM Capacity', 'Software Ecosystem', 'Bandwidth Tech', 'Market QA Base', 'Hardware Availability'],
-                    datasets: [
-                        {
-                            label: 'NVIDIA RTX 5060',
-                            data: [75, 100, 95, 100, 90],
-                            backgroundColor: 'rgba(118, 185, 0, 0.2)',
-                            borderColor: '#76b900',
-                            borderWidth: 2,
-                            pointBackgroundColor: '#76b900',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: '#76b900'
-                        },
-                        {
-                            label: 'Intel Arc B580',
-                            data: [100, 45, 70, 30, 50],
-                            backgroundColor: 'rgba(0, 113, 197, 0.2)',
-                            borderColor: '#0071c5',
-                            borderWidth: 2,
-                            pointBackgroundColor: '#0071c5',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: '#0071c5'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            pointLabels: { 
-                                font: { size: 13, weight: '600' },
-                                color: '#e2e8f0'
+                new Chart(ctx.getContext('2d'), {
+                    type: 'radar',
+                    data: {
+                        labels: ['VRAM Capacity', 'Software Ecosystem', 'Bandwidth Tech', 'Market QA Base', 'Hardware Availability'],
+                        datasets: [
+                            {
+                                label: 'NVIDIA RTX 5060',
+                                data: [75, 100, 95, 100, 90],
+                                backgroundColor: 'rgba(118, 185, 0, 0.2)',
+                                borderColor: '#76b900',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#76b900',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: '#76b900'
                             },
-                            ticks: { display: false, min: 0, max: 100 }
-                        }
+                            {
+                                label: 'Intel Arc B580',
+                                data: [100, 45, 70, 30, 50],
+                                backgroundColor: 'rgba(0, 113, 197, 0.2)',
+                                borderColor: '#0071c5',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#0071c5',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: '#0071c5'
+                            }
+                        ]
                     },
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { padding: 20, font: { size: 14 } }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                pointLabels: { 
+                                    font: { size: 13, weight: '600' },
+                                    color: '#e2e8f0'
+                                },
+                                ticks: { display: false, min: 0, max: 100 }
+                            }
                         },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleFont: { size: 14, family: 'Outfit' },
-                            bodyFont: { size: 14, family: 'Outfit' },
-                            padding: 12,
-                            cornerRadius: 8,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { padding: 20, font: { size: 14 } }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleFont: { size: 14, family: 'Outfit' },
+                                bodyFont: { size: 14, family: 'Outfit' },
+                                padding: 12,
+                                cornerRadius: 8,
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         });
     </script>
 </body>
