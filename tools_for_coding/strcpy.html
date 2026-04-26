@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>strcpy 动态演示过程</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent-blue: #6366f1;
+            --accent-orange: #f59e0b;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: var(--surface-color);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 600;
+            background: linear-gradient(90deg, #ff7e5f, #feb47b, #8a2387, #e94057, #f27121);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .array-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .array-label {
+            width: 120px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .array-label.src { color: var(--accent-blue); }
+        .array-label.dest { color: var(--accent-orange); }
+
+        .memory-blocks {
+            display: flex;
+            gap: 10px;
+        }
+
+        .block {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-family: monospace;
+            position: relative;
+            transition: all 0.3s ease;
+            background-color: var(--bg-color);
+        }
+
+        .block.active-src {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+            transform: translateY(-5px);
+        }
+
+        .block.active-dest {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+
+        .block.changed {
+            color: var(--accent-orange);
+            font-weight: bold;
+        }
+
+        .arrow {
+            position: absolute;
+            font-size: 24px;
+            color: var(--accent-blue);
+            transition: all 0.3s ease;
+            opacity: 0;
+            top: 60px; /* Positioned between arrays */
+        }
+
+        .description {
+            background-color: var(--bg-color);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-blue);
+            min-height: 80px;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 10px 24px;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #2a2a2a;
+            border-color: #555;
+        }
+
+        button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>strcpy 内存复制过程</h1>
+    
+    <div style="position: relative; padding-bottom: 40px;">
+        <div class="array-container">
+            <div class="array-label src">源字符串<br>(Source)</div>
+            <div class="memory-blocks" id="src-blocks"></div>
+        </div>
+
+        <div class="arrow" id="pointer-arrow">↓</div>
+
+        <div class="array-container">
+            <div class="array-label dest">目标字符串<br>(Destination)</div>
+            <div class="memory-blocks" id="dest-blocks"></div>
+        </div>
+    </div>
+
+    <div class="description" id="step-desc">
+        初始化中...
+    </div>
+
+    <div class="controls">
+        <button id="btn-reset" onclick="reset()">重置过程</button>
+        <button id="btn-prev" onclick="prevStep()">上一步</button>
+        <button id="btn-next" class="btn-primary" onclick="nextStep()">下一步</button>
+    </div>
+</div>
+
+<script>
+    // 定义每一步的状态
+    const states = [
+        {
+            src: ['Y', 'o', 'u', '\\0', '', ''],
+            dest: ['I', 'L', 'o', 'v', 'e', '\\0'],
+            activeIdx: -1,
+            desc: "<b>初始状态</b>：准备调用 <code>strcpy(dest, src)</code>。<br>内存中，源字符串内容为 'You\\0'，目标字符串预先存在内容为 'ILove\\0'。"
+        },
+        {
+            src: ['Y', 'o', 'u', '\\0', '', ''],
+            dest: ['Y', 'L', 'o', 'v', 'e', '\\0'],
+            activeIdx: 0,
+            desc: "<b>第 1 步</b>：读取源数组索引 0 的字符 <code>'Y'</code>，写入目标数组索引 0，覆盖 <code>'I'</code>。"
+        },
+        {
+            src: ['Y', 'o', 'u', '\\0', '', ''],
+            dest: ['Y', 'o', 'o', 'v', 'e', '\\0'],
+            activeIdx: 1,
+            desc: "<b>第 2 步</b>：指针后移。读取源数组索引 1 的字符 <code>'o'</code>，写入目标数组索引 1，覆盖 <code>'L'</code>。"
+        },
+        {
+            src: ['Y', 'o', 'u', '\\0', '', ''],
+            dest: ['Y', 'o', 'u', 'v', 'e', '\\0'],
+            activeIdx: 2,
+            desc: "<b>第 3 步</b>：指针后移。读取源数组索引 2 的字符 <code>'u'</code>，写入目标数组索引 2，覆盖 <code>'o'</code>。"
+        },
+        {
+            src: ['Y', 'o', 'u', '\\0', '', ''],
+            dest: ['Y', 'o', 'u', '\\0', 'e', '\\0'],
+            activeIdx: 3,
+            desc: "<b>第 4 步（结束）</b>：读取到源数组的结束符 <code>'\\0'</code>，将其写入目标数组覆盖 <code>'v'</code>。<code>strcpy</code> 检测到 <code>'\\0'</code>，复制过程立即停止！<br><span style='color: var(--accent-orange); font-size: 0.9em;'>注意：目标内存中后半部分的 <code>'e'</code> 和 <code>'\\0'</code> 依然残留在内存里，但字符串已被截断为 \"You\"。</span>"
+        }
+    ];
+
+    let currentStep = 0;
+    const maxSteps = states.length - 1;
+
+    function render() {
+        const state = states[currentStep];
+        const srcContainer = document.getElementById('src-blocks');
+        const destContainer = document.getElementById('dest-blocks');
+        const arrow = document.getElementById('pointer-arrow');
+        
+        srcContainer.innerHTML = '';
+        destContainer.innerHTML = '';
+
+        // 渲染源数组
+        state.src.forEach((char, index) => {
+            const block = document.createElement('div');
+            block.className = `block ${index === state.activeIdx ? 'active-src' : ''}`;
+            block.innerHTML = char === '\\0' ? '<span style="font-size:1rem;">\\0</span>' : char;
+            srcContainer.appendChild(block);
+        });
+
+        // 渲染目标数组
+        state.dest.forEach((char, index) => {
+            const block = document.createElement('div');
+            // 判断是否是刚刚被修改的字符
+            let isChanged = false;
+            if (currentStep > 0 && index <= state.activeIdx) {
+                isChanged = true;
+            }
+            
+            block.className = `block ${index === state.activeIdx ? 'active-dest' : ''} ${isChanged ? 'changed' : ''}`;
+            block.innerHTML = char === '\\0' ? '<span style="font-size:1rem;">\\0</span>' : char;
+            destContainer.appendChild(block);
+        });
+
+        // 控制箭头位置和显示
+        if (state.activeIdx >= 0) {
+            arrow.style.opacity = 1;
+            // 基础偏移量(Label宽度120px + gap40px) + 每个block的宽度和gap
+            const offset = 120 + 40 + (state.activeIdx * (50 + 10)) + 15; 
+            arrow.style.left = `${offset}px`;
+        } else {
+            arrow.style.opacity = 0;
+        }
+
+        // 更新文字描述
+        document.getElementById('step-desc').innerHTML = state.desc;
+
+        // 更新按钮状态
+        document.getElementById('btn-prev').disabled = currentStep === 0;
+        document.getElementById('btn-next').disabled = currentStep === maxSteps;
+        
+        // 动态修改下一步按钮的文字
+        if (currentStep === maxSteps) {
+            document.getElementById('btn-next').innerText = "复制完成";
+        } else {
+            document.getElementById('btn-next').innerText = "下一步";
+        }
+    }
+
+    function nextStep() {
+        if (currentStep < maxSteps) {
+            currentStep++;
+            render();
+        }
+    }
+
+    function prevStep() {
+        if (currentStep > 0) {
+            currentStep--;
+            render();
+        }
+    }
+
+    function reset() {
+        currentStep = 0;
+        render();
+    }
+
+    // 初始化渲染
+    render();
+</script>
+
+</body>
+</html>
