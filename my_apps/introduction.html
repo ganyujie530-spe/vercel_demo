@@ -1,774 +1,1835 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Team 8 | Automated Beverage Vending Machine</title>
-  <style>
-    :root {
-      --nv: #76b900;
-      --nv2: #a3d900;
-      --intel: #0071c5;
-      --sky: #38bdf8;
-      --purple: #a855f7;
-      --gold: #f59e0b;
-      --red: #ef4444;
-      --bg: #020205;
-      --panel: rgba(17, 24, 39, 0.88);
-      --text: #f1f5f9;
-      --muted: #c2cad6;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Team 8 | Automated Beverage Vending Machine</title>
+    <style>
+        :root {
+            --nv: #76b900;
+            --nv2: #a3d900;
+            --intel: #0071c5;
+            --sky: #38bdf8;
+            --purple: #a855f7;
+            --gold: #f59e0b;
+            --red: #ef4444;
+            --bg: #020205;
+            --panel: rgba(17, 24, 39, 0.88);
+            --text: #f1f5f9;
+            --muted: #c2cad6;
+        }
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: "Segoe UI", "Aptos", sans-serif;
-      overflow: hidden;
-    }
+        * {
+            box-sizing: border-box;
+        }
 
-    .deck {
-      height: 100vh;
-      overflow-y: auto;
-      scroll-snap-type: y mandatory;
-      background:
-        linear-gradient(90deg, rgba(118,185,0,.08) 1px, transparent 1px) 0 0 / 104px 104px,
-        linear-gradient(0deg, rgba(56,189,248,.08) 1px, transparent 1px) 0 0 / 92px 92px,
-        radial-gradient(circle at 80% 15%, rgba(118,185,0,.22), transparent 30%),
-        radial-gradient(circle at 18% 82%, rgba(0,113,197,.28), transparent 32%),
-        #020205;
-      animation: gridDrift 38s linear infinite;
-    }
-    @keyframes gridDrift {
-      0%   { background-position: 0 0, 0 0, 80% 15%, 18% 82%, 0 0; }
-      100% { background-position: 104px 104px, -92px 92px, 80% 15%, 18% 82%, 0 0; }
-    }
+        html {
+            scroll-behavior: smooth;
+        }
 
-    .slide {
-      position: relative;
-      height: 100vh;
-      width: 100vw;
-      padding: 6.2vh 6vw;
-      scroll-snap-align: start;
-      overflow: hidden;
-      display: grid;
-      align-content: center;
-      border-top: 5px solid var(--nv);
-      border-bottom: 5px solid var(--intel);
-    }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", "Aptos", sans-serif;
+            overflow: hidden;
+        }
 
-    .slide::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: repeating-linear-gradient(0deg, rgba(255,255,255,.03), rgba(255,255,255,.03) 1px, transparent 1px, transparent 5px);
-      mix-blend-mode: screen;
-      opacity: .42;
-    }
+        .deck {
+            height: 100vh;
+            overflow-y: auto;
+            scroll-snap-type: y mandatory;
+            background:
+                linear-gradient(90deg, rgba(118, 185, 0, .08) 1px, transparent 1px) 0 0 / 104px 104px,
+                linear-gradient(0deg, rgba(56, 189, 248, .08) 1px, transparent 1px) 0 0 / 92px 92px,
+                radial-gradient(circle at 80% 15%, rgba(118, 185, 0, .22), transparent 30%),
+                radial-gradient(circle at 18% 82%, rgba(0, 113, 197, .28), transparent 32%),
+                #020205;
+            animation: gridDrift 38s linear infinite;
+        }
 
-    .slide::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -40%;
-      width: 40%;
-      height: 100%;
-      background: linear-gradient(100deg, transparent, rgba(118,185,0,.10) 45%, rgba(56,189,248,.14) 55%, transparent);
-      pointer-events: none;
-      transform: skewX(-12deg);
-      opacity: 0;
-    }
-    .slide.active::after {
-      animation: sweep 2.6s ease-out 1;
-    }
-    @keyframes sweep {
-      0% { opacity: 0; left: -40%; }
-      15% { opacity: 1; }
-      60% { opacity: .7; }
-      100% { opacity: 0; left: 120%; }
-    }
+        @keyframes gridDrift {
+            0% {
+                background-position: 0 0, 0 0, 80% 15%, 18% 82%, 0 0;
+            }
 
-    .kicker {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      font: 900 18px/1 "Bahnschrift", "Segoe UI", sans-serif;
-      letter-spacing: .22em;
-      color: var(--nv);
-      text-transform: uppercase;
-      margin-bottom: 20px;
-      text-shadow: 0 0 18px rgba(118,185,0,.7);
-    }
-    .kicker::before {
-      content: "";
-      width: 44px;
-      height: 6px;
-      background: currentColor;
-      box-shadow: 0 0 24px currentColor;
-    }
+            100% {
+                background-position: 104px 104px, -92px 92px, 80% 15%, 18% 82%, 0 0;
+            }
+        }
 
-    h1, h2, h3 {
-      font-family: "Bahnschrift", "Segoe UI", sans-serif;
-      margin: 0;
-      letter-spacing: 0;
-    }
-    h1 {
-      font-size: clamp(64px, 8.4vw, 112px);
-      line-height: .98;
-      max-width: 1100px;
-      text-transform: uppercase;
-    }
-    h2 {
-      font-size: clamp(42px, 5.6vw, 70px);
-      line-height: 1.06;
-      max-width: 1180px;
-    }
-    h3 { font-size: clamp(28px, 2.6vw, 36px); }
-    p {
-      font-size: clamp(26px, 2.6vw, 36px);
-      line-height: 1.38;
-      color: var(--text);
-      max-width: 1100px;
-    }
+        .slide {
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+            padding: 6.2vh 6vw;
+            scroll-snap-align: start;
+            overflow: hidden;
+            display: grid;
+            align-content: center;
+            border-top: 5px solid var(--nv);
+            border-bottom: 5px solid var(--intel);
+        }
 
-    .green { color: var(--nv); text-shadow: 0 0 28px rgba(118,185,0,.7); }
-    .blue { color: var(--sky); text-shadow: 0 0 28px rgba(56,189,248,.6); }
-    .purple { color: var(--purple); text-shadow: 0 0 28px rgba(168,85,247,.55); }
-    .gold { color: var(--gold); text-shadow: 0 0 28px rgba(245,158,11,.55); }
-    .red { color: var(--red); text-shadow: 0 0 28px rgba(239,68,68,.55); }
+        .slide::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .03) 1px, transparent 1px, transparent 5px);
+            mix-blend-mode: screen;
+            opacity: .42;
+        }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 28px;
-      margin-top: 48px;
-    }
-    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .grid.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-    .grid.six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+        .slide::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -40%;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(100deg, transparent, rgba(118, 185, 0, .10) 45%, rgba(56, 189, 248, .14) 55%, transparent);
+            pointer-events: none;
+            transform: skewX(-12deg);
+            opacity: 0;
+        }
 
-    .panel {
-      position: relative;
-      min-height: 170px;
-      padding: 32px;
-      background: var(--panel);
-      border: 1px solid rgba(255,255,255,.16);
-      border-radius: 24px;
-      box-shadow:
-        0 30px 80px rgba(0,0,0,.7),
-        inset 0 1px 0 rgba(255,255,255,.14);
-      backdrop-filter: blur(22px);
-      overflow: hidden;
-      transition: transform .4s ease, box-shadow .4s ease;
-    }
-    .panel:hover {
-      transform: translateY(-6px) scale(1.015);
-      box-shadow: 0 36px 90px rgba(0,0,0,.8), 0 0 40px var(--accent, var(--nv));
-    }
-    .panel::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      right: 0;
-      height: 6px;
-      background: linear-gradient(90deg, var(--accent, var(--nv)), rgba(255,255,255,.9), var(--accent, var(--nv)));
-      background-size: 220% 100%;
-      box-shadow: 0 0 26px var(--accent, var(--nv));
-      animation: shimmer 4.5s linear infinite;
-    }
-    @keyframes shimmer {
-      0% { background-position: 0% 0; }
-      100% { background-position: -220% 0; }
-    }
-    .panel h3 {
-      color: var(--text);
-      margin-bottom: 14px;
-    }
-    .panel p, .panel li {
-      font-size: clamp(20px, 1.9vw, 27px);
-      line-height: 1.42;
-      color: var(--muted);
-    }
-    .panel ul { padding-left: 26px; margin: 0; }
-    .panel li { margin-bottom: 8px; }
+        .slide.active::after {
+            animation: sweep 2.6s ease-out 1;
+        }
 
-    .flow {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 36px;
-      align-items: center;
-      margin-top: 52px;
-    }
-    .flow.six { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; }
-    .node {
-      min-height: 156px;
-      padding: 28px 22px;
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(11,16,24,.9);
-      box-shadow: 0 0 0 1px rgba(255,255,255,.04), 0 20px 50px rgba(0,0,0,.55);
-      position: relative;
-      transition: transform .4s ease;
-    }
-    .node:hover { transform: translateY(-5px); }
-    .node::after {
-      content: "";
-      position: absolute;
-      right: -34px;
-      top: 50%;
-      width: 32px;
-      height: 5px;
-      background: var(--accent, var(--nv));
-      box-shadow: 0 0 18px var(--accent, var(--nv));
-      animation: nodeFlow 1.8s ease-in-out infinite;
-    }
-    @keyframes nodeFlow {
-      0%, 100% { box-shadow: 0 0 10px var(--accent, var(--nv)); opacity: .6; }
-      50% { box-shadow: 0 0 24px var(--accent, var(--nv)), 0 0 40px var(--accent, var(--nv)); opacity: 1; }
-    }
-    .node:last-child::after { display: none; }
-    .node h3 { font-size: clamp(24px, 2.2vw, 30px); color: var(--accent, var(--nv)); }
-    .node p { font-size: clamp(18px, 1.6vw, 23px); margin: 12px 0 0; color: var(--muted); }
+        @keyframes sweep {
+            0% {
+                opacity: 0;
+                left: -40%;
+            }
 
-    .counter {
-      position: fixed;
-      bottom: 26px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 50;
-      font: 800 14px/1 "Bahnschrift", sans-serif;
-      letter-spacing: .3em;
-      color: rgba(255,255,255,.5);
-    }
-    .progress {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 60;
-      height: 5px;
-      width: 0;
-      background: linear-gradient(90deg, var(--nv), var(--sky));
-      box-shadow: 0 0 22px var(--nv);
-    }
-    .dots {
-      position: fixed;
-      right: 26px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 55;
-      display: grid;
-      gap: 13px;
-    }
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.3);
-      background: rgba(255,255,255,.2);
-      cursor: pointer;
-      transition: .25s ease;
-    }
-    .dot.active {
-      background: var(--nv);
-      box-shadow: 0 0 18px var(--nv);
-      transform: scale(1.5);
-    }
+            15% {
+                opacity: 1;
+            }
 
-    .reveal, .reveal-left, .reveal-right, .reveal-scale {
-      opacity: 0;
-      transition: opacity 1s ease, transform 1s cubic-bezier(.22,1,.36,1);
-    }
-    .reveal { transform: translateY(70px); }
-    .reveal-left { transform: translateX(-90px); }
-    .reveal-right { transform: translateX(90px); }
-    .reveal-scale { transform: scale(.78); }
-    .active .reveal,
-    .active .reveal-left,
-    .active .reveal-right,
-    .active .reveal-scale {
-      opacity: 1;
-      transform: translate(0,0) scale(1);
-    }
-    .d1 { transition-delay: .1s; }
-    .d2 { transition-delay: .22s; }
-    .d3 { transition-delay: .34s; }
-    .d4 { transition-delay: .46s; }
-    .d5 { transition-delay: .58s; }
-    .d6 { transition-delay: .7s; }
+            60% {
+                opacity: .7;
+            }
 
-    .metric-rail {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-top: 48px;
-      max-width: 1040px;
-    }
-    .metric {
-      padding: 26px;
-      border-radius: 22px;
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.16);
-    }
-    .metric strong {
-      display: block;
-      font: 900 38px/1 "Bahnschrift", sans-serif;
-      color: var(--accent, var(--nv));
-      text-shadow: 0 0 22px var(--accent, var(--nv));
-    }
-    .metric span {
-      display: block;
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 19px;
-    }
+            100% {
+                opacity: 0;
+                left: 120%;
+            }
+        }
 
-    .pulse {
-      animation: pulseglow 2.4s ease-in-out infinite;
-    }
-    @keyframes pulseglow {
-      0%, 100% { text-shadow: 0 0 18px currentColor; }
-      50% { text-shadow: 0 0 42px currentColor, 0 0 70px currentColor; }
-    }
+        .kicker {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            font: 900 18px/1 "Bahnschrift", "Segoe UI", sans-serif;
+            letter-spacing: .22em;
+            color: var(--nv);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            text-shadow: 0 0 18px rgba(118, 185, 0, .7);
+        }
 
-    .tag {
-      display: inline-block;
-      padding: 6px 16px;
-      border-radius: 999px;
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: .08em;
-      border: 1px solid currentColor;
-      margin-right: 10px;
-      margin-bottom: 10px;
-    }
+        .kicker::before {
+            content: "";
+            width: 44px;
+            height: 6px;
+            background: currentColor;
+            box-shadow: 0 0 24px currentColor;
+        }
 
-    .interface-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr 380px;
-      gap: 22px;
-      margin-top: 20px;
-      align-items: start;
-    }
+        h1,
+        h2,
+        h3 {
+            font-family: "Bahnschrift", "Segoe UI", sans-serif;
+            margin: 0;
+            letter-spacing: 0;
+        }
 
-    .step-flow { display: flex; flex-direction: column; gap: 0; }
-    .step-node {
-      display: flex; align-items: flex-start; gap: 14px;
-      padding: 12px 0 12px 22px;
-      border-left: 3px solid rgba(255,255,255,.08);
-      position: relative; transition: border-color .3s;
-    }
-    .step-node.lit { border-left-color: var(--accent, var(--nv)); }
-    .step-node::before {
-      content: ""; position: absolute; left: -8px; top: 16px;
-      width: 14px; height: 14px; border-radius: 50%;
-      background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.2); transition: .3s;
-    }
-    .step-node.lit::before { background: var(--accent, var(--nv)); box-shadow: 0 0 14px var(--accent, var(--nv)); border-color: transparent; }
-    .step-node .sn-icon { font-size: 20px; line-height: 1; margin-top: 2px; flex-shrink: 0; }
-    .step-node .sn-body h3 { font-size: clamp(15px,1.3vw,19px); margin-bottom: 3px; color: var(--text); }
-    .step-node .sn-body p { font-size: clamp(12px,1vw,15px); color: var(--muted); line-height: 1.4; max-width: none; }
+        h1 {
+            font-size: clamp(64px, 8.4vw, 112px);
+            line-height: .98;
+            max-width: 1100px;
+            text-transform: uppercase;
+        }
 
-    .live-col { display: flex; flex-direction: column; gap: 10px; }
-    .live-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
-    .live-header h3 { font-size: clamp(17px,1.5vw,22px); color: var(--text); }
-    .live-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--red); box-shadow: 0 0 12px var(--red); animation: blink2 1s steps(1) infinite; }
-    @keyframes blink2 { 50%{opacity:0} }
-    .live-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--red); padding: 4px 12px; border-radius: 999px; border: 1px solid var(--red); box-shadow: 0 0 16px rgba(239,68,68,.3); }
+        h2 {
+            font-size: clamp(42px, 5.6vw, 70px);
+            line-height: 1.06;
+            max-width: 1180px;
+        }
 
-    .stats-bar { display: flex; gap: 10px; }
-    .stat-chip { flex:1; padding: 12px 8px; border-radius: 12px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); text-align: center; }
-    .stat-chip strong { display:block; font: 900 26px/1 "Bahnschrift",sans-serif; color:var(--accent,var(--nv)); }
-    .stat-chip span { font-size: 11px; color: var(--muted); margin-top:4px; display:block; }
+        h3 {
+            font-size: clamp(28px, 2.6vw, 36px);
+        }
 
-    .order-card {
-      padding: 14px 16px; border-radius: 14px;
-      background: rgba(118,185,0,.08); border: 1px solid rgba(118,185,0,.25);
-      animation: cardIn .5s cubic-bezier(.22,1,.36,1); position: relative; overflow: hidden;
-    }
-    .order-card::before { content:""; position:absolute; left:0;top:0;right:0;height:2px; background: linear-gradient(90deg,var(--nv),transparent); }
-    @keyframes cardIn { from{opacity:0;transform:translateX(-22px) scale(.97)} to{opacity:1;transform:none} }
-    .oc-top { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
-    .oc-emoji { font-size:24px; }
-    .oc-name { font-size:16px; font-weight:900; color:var(--nv); text-shadow:0 0 12px rgba(118,185,0,.6); }
-    .oc-drink { font-size:13px; color:var(--muted); }
-    .oc-tags { display:flex; flex-wrap:wrap; gap:5px; }
-    .oc-tag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; border:1px solid rgba(255,255,255,.12); color:#94a3b8; background:rgba(255,255,255,.05); }
-    .oc-time { font-size:10px; color:#475569; margin-top:5px; }
+        p {
+            font-size: clamp(26px, 2.6vw, 36px);
+            line-height: 1.38;
+            color: var(--text);
+            max-width: 1100px;
+        }
 
-    .empty-feed { padding:24px 18px; border-radius:14px; text-align:center; border:1.5px dashed rgba(255,255,255,.1); color:var(--muted); font-size:clamp(14px,1.2vw,17px); }
+        .green {
+            color: var(--nv);
+            text-shadow: 0 0 28px rgba(118, 185, 0, .7);
+        }
 
-    .qr-col { display: flex; flex-direction: column; gap: 12px; }
+        .blue {
+            color: var(--sky);
+            text-shadow: 0 0 28px rgba(56, 189, 248, .6);
+        }
 
-    .qr-widget {
-      position: relative; padding: 22px 18px 20px;
-      border-radius: 22px;
-      border: 2.5px dashed var(--red);
-      background: linear-gradient(145deg, rgba(239,68,68,.12), rgba(17,24,39,.97));
-      box-shadow: 0 0 48px rgba(239,68,68,.22), 0 30px 70px rgba(0,0,0,.7);
-      animation: qrFloat 4s ease-in-out infinite;
-      overflow: hidden;
-    }
-    @keyframes qrFloat { 0%,100%{transform:translateY(0) rotate(-.4deg)} 50%{transform:translateY(-7px) rotate(.4deg)} }
-    .qr-widget::before {
-      content:""; position:absolute; inset:0;
-      background:repeating-linear-gradient(45deg,rgba(239,68,68,.03),rgba(239,68,68,.03) 1px,transparent 1px,transparent 14px);
-      pointer-events:none;
-    }
+        .purple {
+            color: var(--purple);
+            text-shadow: 0 0 28px rgba(168, 85, 247, .55);
+        }
 
-    .qr-live-badge {
-      display:inline-flex; align-items:center; gap:8px;
-      font:900 12px/1 "Bahnschrift",sans-serif; letter-spacing:.16em; text-transform:uppercase;
-      color:#fff; background:var(--red); padding:6px 14px; border-radius:999px;
-      box-shadow:0 0 22px var(--red); margin-bottom:12px;
-      animation:badgeFlash 1.4s steps(2,jump-none) infinite;
-    }
-    @keyframes badgeFlash { 0%,60%{opacity:1} 80%{opacity:.2} 100%{opacity:1} }
-    .qr-live-dot { width:8px;height:8px;border-radius:50%;background:#fff; animation:blink2 .8s steps(1) infinite; }
+        .gold {
+            color: var(--gold);
+            text-shadow: 0 0 28px rgba(245, 158, 11, .55);
+        }
 
-    .qr-title { font-size:clamp(15px,1.3vw,19px); font-weight:900; color:var(--gold); margin-bottom:7px; }
-    .qr-desc  { font-size:clamp(12px,1vw,14px); color:var(--muted); line-height:1.5; margin-bottom:12px; }
+        .red {
+            color: var(--red);
+            text-shadow: 0 0 28px rgba(239, 68, 68, .55);
+        }
 
-    .qr-img-wrap { display:flex; justify-content:center; }
-    .qr-img-wrap img {
-      width:150px; height:150px; border-radius:14px;
-      border:3px solid #fff; background:#fff;
-      box-shadow:0 0 32px rgba(239,68,68,.5), 0 16px 40px rgba(0,0,0,.65);
-      transition: transform .3s ease;
-    }
-    .qr-img-wrap img:hover { transform: scale(1.06); }
-    .qr-url { font-size:10px; color:#475569; text-align:center; margin-top:8px; word-break:break-all; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 28px;
+            margin-top: 48px;
+        }
 
-    .sensor-mini { padding:14px 16px; border-radius:16px; background:var(--panel); border:1px solid rgba(255,255,255,.1); }
-    .sensor-mini h3 { font-size:clamp(13px,1vw,16px); margin-bottom:9px; color:var(--nv); }
-    .sensor-row-mini { display:flex; gap:7px; }
-    .sensor-chip-mini { flex:1; padding:9px 5px; border-radius:10px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); text-align:center; }
-    .sensor-chip-mini .sl { font-size:10px; color:#64748b; }
-    .sensor-chip-mini .sv { display:block; font:900 14px/1 "Bahnschrift",sans-serif; color:var(--nv); margin-top:3px; }
+        .grid.two {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
 
-    .live-panel { display:flex; flex-direction:column; }
-    .live-feed { margin-top:6px; max-height:260px; overflow:hidden; display:flex; flex-direction:column; gap:10px; }
-    .live-row { padding:12px 16px; border-radius:12px; background:rgba(168,85,247,.12); border:1px solid rgba(168,85,247,.35); font-size:clamp(18px,1.7vw,24px); color:var(--text); animation:liveIn .5s ease; display:flex; justify-content:space-between; gap:12px; }
-    .live-row .name { font-weight:800; color:var(--purple); text-shadow:0 0 12px var(--purple); }
-    .live-row .meta { color:var(--muted); font-size:.8em; text-align:right; }
-    .live-row.placeholder { color:var(--muted); border-style:dashed; background:rgba(255,255,255,.03); justify-content:flex-start; }
-    @keyframes liveIn { from{opacity:0;transform:translateX(-24px)} to{opacity:1;transform:translateX(0)} }
+        .grid.four {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
 
-    .tw-cursor { display:inline-block; width:.5ch; background:var(--nv); box-shadow:0 0 18px var(--nv); animation:blink .85s step-end infinite; vertical-align:-0.08em; }
-    @keyframes blink { 50%{opacity:0} }
-    #typewriter-title .tw-done { animation:none; opacity:0; }
+        .grid.five {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
 
-    @media (max-width: 900px) {
-      body { overflow: auto; }
-      .deck { overflow-y: auto; }
-      .slide { min-height:100vh; height:auto; padding:64px 24px 96px; }
-      .grid, .grid.two, .grid.four, .grid.five, .grid.six, .flow, .flow.six, .interface-layout { grid-template-columns:1fr; }
-      .node::after { display:none; }
-      .dots { display:none; }
-    }
-  </style>
+        .grid.six {
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+        }
+
+        .panel {
+            position: relative;
+            min-height: 170px;
+            padding: 32px;
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, .16);
+            border-radius: 24px;
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, .7),
+                inset 0 1px 0 rgba(255, 255, 255, .14);
+            backdrop-filter: blur(22px);
+            overflow: hidden;
+            transition: transform .4s ease, box-shadow .4s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-6px) scale(1.015);
+            box-shadow: 0 36px 90px rgba(0, 0, 0, .8), 0 0 40px var(--accent, var(--nv));
+        }
+
+        .panel::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent, var(--nv)), rgba(255, 255, 255, .9), var(--accent, var(--nv)));
+            background-size: 220% 100%;
+            box-shadow: 0 0 26px var(--accent, var(--nv));
+            animation: shimmer 4.5s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 0% 0;
+            }
+
+            100% {
+                background-position: -220% 0;
+            }
+        }
+
+        .panel h3 {
+            color: var(--text);
+            margin-bottom: 14px;
+        }
+
+        .panel p,
+        .panel li {
+            font-size: clamp(20px, 1.9vw, 27px);
+            line-height: 1.42;
+            color: var(--muted);
+        }
+
+        .panel ul {
+            padding-left: 26px;
+            margin: 0;
+        }
+
+        .panel li {
+            margin-bottom: 8px;
+        }
+
+        .flow {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 36px;
+            align-items: center;
+            margin-top: 52px;
+        }
+
+        .flow.six {
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .node {
+            min-height: 156px;
+            padding: 28px 22px;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, .18);
+            background: rgba(11, 16, 24, .9);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, .04), 0 20px 50px rgba(0, 0, 0, .55);
+            position: relative;
+            transition: transform .4s ease;
+        }
+
+        .node:hover {
+            transform: translateY(-5px);
+        }
+
+        .node::after {
+            content: "";
+            position: absolute;
+            right: -34px;
+            top: 50%;
+            width: 32px;
+            height: 5px;
+            background: var(--accent, var(--nv));
+            box-shadow: 0 0 18px var(--accent, var(--nv));
+            animation: nodeFlow 1.8s ease-in-out infinite;
+        }
+
+        @keyframes nodeFlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 10px var(--accent, var(--nv));
+                opacity: .6;
+            }
+
+            50% {
+                box-shadow: 0 0 24px var(--accent, var(--nv)), 0 0 40px var(--accent, var(--nv));
+                opacity: 1;
+            }
+        }
+
+        .node:last-child::after {
+            display: none;
+        }
+
+        .node h3 {
+            font-size: clamp(24px, 2.2vw, 30px);
+            color: var(--accent, var(--nv));
+        }
+
+        .node p {
+            font-size: clamp(18px, 1.6vw, 23px);
+            margin: 12px 0 0;
+            color: var(--muted);
+        }
+
+        .counter {
+            position: fixed;
+            bottom: 26px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            font: 800 14px/1 "Bahnschrift", sans-serif;
+            letter-spacing: .3em;
+            color: rgba(255, 255, 255, .5);
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 60;
+            height: 5px;
+            width: 0;
+            background: linear-gradient(90deg, var(--nv), var(--sky));
+            box-shadow: 0 0 22px var(--nv);
+        }
+
+        .dots {
+            position: fixed;
+            right: 26px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 55;
+            display: grid;
+            gap: 13px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, .3);
+            background: rgba(255, 255, 255, .2);
+            cursor: pointer;
+            transition: .25s ease;
+        }
+
+        .dot.active {
+            background: var(--nv);
+            box-shadow: 0 0 18px var(--nv);
+            transform: scale(1.5);
+        }
+
+        .reveal,
+        .reveal-left,
+        .reveal-right,
+        .reveal-scale {
+            opacity: 0;
+            transition: opacity 1s ease, transform 1s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .reveal {
+            transform: translateY(70px);
+        }
+
+        .reveal-left {
+            transform: translateX(-90px);
+        }
+
+        .reveal-right {
+            transform: translateX(90px);
+        }
+
+        .reveal-scale {
+            transform: scale(.78);
+        }
+
+        .active .reveal,
+        .active .reveal-left,
+        .active .reveal-right,
+        .active .reveal-scale {
+            opacity: 1;
+            transform: translate(0, 0) scale(1);
+        }
+
+        .d1 {
+            transition-delay: .1s;
+        }
+
+        .d2 {
+            transition-delay: .22s;
+        }
+
+        .d3 {
+            transition-delay: .34s;
+        }
+
+        .d4 {
+            transition-delay: .46s;
+        }
+
+        .d5 {
+            transition-delay: .58s;
+        }
+
+        .d6 {
+            transition-delay: .7s;
+        }
+
+        .metric-rail {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 48px;
+            max-width: 1040px;
+        }
+
+        .metric {
+            padding: 26px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid rgba(255, 255, 255, .16);
+        }
+
+        .metric strong {
+            display: block;
+            font: 900 38px/1 "Bahnschrift", sans-serif;
+            color: var(--accent, var(--nv));
+            text-shadow: 0 0 22px var(--accent, var(--nv));
+        }
+
+        .metric span {
+            display: block;
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 19px;
+        }
+
+        .pulse {
+            animation: pulseglow 2.4s ease-in-out infinite;
+        }
+
+        @keyframes pulseglow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 18px currentColor;
+            }
+
+            50% {
+                text-shadow: 0 0 42px currentColor, 0 0 70px currentColor;
+            }
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: .08em;
+            border: 1px solid currentColor;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .interface-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr 380px;
+            gap: 22px;
+            margin-top: 20px;
+            align-items: start;
+        }
+
+        .step-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .step-node {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 12px 0 12px 22px;
+            border-left: 3px solid rgba(255, 255, 255, .08);
+            position: relative;
+            transition: border-color .3s;
+        }
+
+        .step-node.lit {
+            border-left-color: var(--accent, var(--nv));
+        }
+
+        .step-node::before {
+            content: "";
+            position: absolute;
+            left: -8px;
+            top: 16px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .12);
+            border: 2px solid rgba(255, 255, 255, .2);
+            transition: .3s;
+        }
+
+        .step-node.lit::before {
+            background: var(--accent, var(--nv));
+            box-shadow: 0 0 14px var(--accent, var(--nv));
+            border-color: transparent;
+        }
+
+        .step-node .sn-icon {
+            font-size: 20px;
+            line-height: 1;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .step-node .sn-body h3 {
+            font-size: clamp(15px, 1.3vw, 19px);
+            margin-bottom: 3px;
+            color: var(--text);
+        }
+
+        .step-node .sn-body p {
+            font-size: clamp(12px, 1vw, 15px);
+            color: var(--muted);
+            line-height: 1.4;
+            max-width: none;
+        }
+
+        .live-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .live-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .live-header h3 {
+            font-size: clamp(17px, 1.5vw, 22px);
+            color: var(--text);
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--red);
+            box-shadow: 0 0 12px var(--red);
+            animation: blink2 1s steps(1) infinite;
+        }
+
+        @keyframes blink2 {
+            50% {
+                opacity: 0
+            }
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--red);
+            padding: 4px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--red);
+            box-shadow: 0 0 16px rgba(239, 68, 68, .3);
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 10px;
+        }
+
+        .stat-chip {
+            flex: 1;
+            padding: 12px 8px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .1);
+            text-align: center;
+        }
+
+        .stat-chip strong {
+            display: block;
+            font: 900 26px/1 "Bahnschrift", sans-serif;
+            color: var(--accent, var(--nv));
+        }
+
+        .stat-chip span {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+            display: block;
+        }
+
+        .order-card {
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(118, 185, 0, .08);
+            border: 1px solid rgba(118, 185, 0, .25);
+            animation: cardIn .5s cubic-bezier(.22, 1, .36, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .order-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--nv), transparent);
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateX(-22px) scale(.97)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .oc-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 7px;
+        }
+
+        .oc-emoji {
+            font-size: 24px;
+        }
+
+        .oc-name {
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--nv);
+            text-shadow: 0 0 12px rgba(118, 185, 0, .6);
+        }
+
+        .oc-drink {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .oc-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .oc-tag {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            color: #94a3b8;
+            background: rgba(255, 255, 255, .05);
+        }
+
+        .oc-time {
+            font-size: 10px;
+            color: #475569;
+            margin-top: 5px;
+        }
+
+        .empty-feed {
+            padding: 24px 18px;
+            border-radius: 14px;
+            text-align: center;
+            border: 1.5px dashed rgba(255, 255, 255, .1);
+            color: var(--muted);
+            font-size: clamp(14px, 1.2vw, 17px);
+        }
+
+        .qr-col {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .qr-widget {
+            position: relative;
+            padding: 22px 18px 20px;
+            border-radius: 22px;
+            border: 2.5px dashed var(--red);
+            background: linear-gradient(145deg, rgba(239, 68, 68, .12), rgba(17, 24, 39, .97));
+            box-shadow: 0 0 48px rgba(239, 68, 68, .22), 0 30px 70px rgba(0, 0, 0, .7);
+            animation: qrFloat 4s ease-in-out infinite;
+            overflow: hidden;
+        }
+
+        @keyframes qrFloat {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(-.4deg)
+            }
+
+            50% {
+                transform: translateY(-7px) rotate(.4deg)
+            }
+        }
+
+        .qr-widget::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(45deg, rgba(239, 68, 68, .03), rgba(239, 68, 68, .03) 1px, transparent 1px, transparent 14px);
+            pointer-events: none;
+        }
+
+        .qr-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font: 900 12px/1 "Bahnschrift", sans-serif;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: #fff;
+            background: var(--red);
+            padding: 6px 14px;
+            border-radius: 999px;
+            box-shadow: 0 0 22px var(--red);
+            margin-bottom: 12px;
+            animation: badgeFlash 1.4s steps(2, jump-none) infinite;
+        }
+
+        @keyframes badgeFlash {
+
+            0%,
+            60% {
+                opacity: 1
+            }
+
+            80% {
+                opacity: .2
+            }
+
+            100% {
+                opacity: 1
+            }
+        }
+
+        .qr-live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fff;
+            animation: blink2 .8s steps(1) infinite;
+        }
+
+        .qr-title {
+            font-size: clamp(15px, 1.3vw, 19px);
+            font-weight: 900;
+            color: var(--gold);
+            margin-bottom: 7px;
+        }
+
+        .qr-desc {
+            font-size: clamp(12px, 1vw, 14px);
+            color: var(--muted);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .qr-img-wrap {
+            display: flex;
+            justify-content: center;
+        }
+
+        .qr-img-wrap img {
+            width: 150px;
+            height: 150px;
+            border-radius: 14px;
+            border: 3px solid #fff;
+            background: #fff;
+            box-shadow: 0 0 32px rgba(239, 68, 68, .5), 0 16px 40px rgba(0, 0, 0, .65);
+            transition: transform .3s ease;
+        }
+
+        .qr-img-wrap img:hover {
+            transform: scale(1.06);
+        }
+
+        .qr-url {
+            font-size: 10px;
+            color: #475569;
+            text-align: center;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        .sensor-mini {
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, .1);
+        }
+
+        .sensor-mini h3 {
+            font-size: clamp(13px, 1vw, 16px);
+            margin-bottom: 9px;
+            color: var(--nv);
+        }
+
+        .sensor-row-mini {
+            display: flex;
+            gap: 7px;
+        }
+
+        .sensor-chip-mini {
+            flex: 1;
+            padding: 9px 5px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 255, 255, .08);
+            text-align: center;
+        }
+
+        .sensor-chip-mini .sl {
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        .sensor-chip-mini .sv {
+            display: block;
+            font: 900 14px/1 "Bahnschrift", sans-serif;
+            color: var(--nv);
+            margin-top: 3px;
+        }
+
+        .live-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .live-feed {
+            margin-top: 6px;
+            max-height: 260px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .live-row {
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(168, 85, 247, .12);
+            border: 1px solid rgba(168, 85, 247, .35);
+            font-size: clamp(18px, 1.7vw, 24px);
+            color: var(--text);
+            animation: liveIn .5s ease;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .live-row .name {
+            font-weight: 800;
+            color: var(--purple);
+            text-shadow: 0 0 12px var(--purple);
+        }
+
+        .live-row .meta {
+            color: var(--muted);
+            font-size: .8em;
+            text-align: right;
+        }
+
+        .live-row.placeholder {
+            color: var(--muted);
+            border-style: dashed;
+            background: rgba(255, 255, 255, .03);
+            justify-content: flex-start;
+        }
+
+        @keyframes liveIn {
+            from {
+                opacity: 0;
+                transform: translateX(-24px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0)
+            }
+        }
+
+        .tw-cursor {
+            display: inline-block;
+            width: .5ch;
+            background: var(--nv);
+            box-shadow: 0 0 18px var(--nv);
+            animation: blink .85s step-end infinite;
+            vertical-align: -0.08em;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0
+            }
+        }
+
+        #typewriter-title .tw-done {
+            animation: none;
+            opacity: 0;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                overflow: auto;
+            }
+
+            .deck {
+                overflow-y: auto;
+            }
+
+            .slide {
+                min-height: 100vh;
+                height: auto;
+                padding: 64px 24px 96px;
+            }
+
+            .grid,
+            .grid.two,
+            .grid.four,
+            .grid.five,
+            .grid.six,
+            .flow,
+            .flow.six,
+            .interface-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .node::after {
+                display: none;
+            }
+
+            .dots {
+                display: none;
+            }
+        }
+
+        /* Custom Additions */
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+            font-size: clamp(18px, 1.6vw, 24px);
+            color: var(--text);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+            background: var(--panel);
+            border-radius: 16px;
+            overflow: hidden;
+            backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .styled-table thead tr {
+            background-color: rgba(255, 255, 255, 0.08);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-align: left;
+            font-family: "Bahnschrift", "Segoe UI", sans-serif;
+            font-size: clamp(20px, 1.8vw, 26px);
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+        }
+
+        .styled-table th,
+        .styled-table td {
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .styled-table td {
+            font-family: "Segoe UI", "Aptos", sans-serif;
+        }
+
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 3px solid var(--accent, var(--nv));
+        }
+
+        .styled-table tbody tr {
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .styled-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .styled-table td strong {
+            display: block;
+            margin-bottom: 6px;
+            font-family: "Bahnschrift", "Segoe UI", sans-serif;
+            letter-spacing: 0.02em;
+        }
+
+        .styled-table h3 {
+            margin-bottom: 8px;
+            font-size: clamp(20px, 1.8vw, 26px);
+            font-family: "Bahnschrift", "Segoe UI", sans-serif;
+        }
+
+        .timeline {
+            border-left: 4px solid rgba(255, 255, 255, 0.2);
+            padding: 0 0 0 34px;
+            margin: 40px 0 0 20px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 32px;
+            padding: 22px 28px;
+            background: rgba(11, 16, 24, 0.9);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 20px 50px rgba(0, 0, 0, 0.55);
+            transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+
+        .timeline-item:hover {
+            transform: translateX(8px) scale(1.01);
+            border-color: var(--accent);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 255, 255, 0.05);
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -48px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent);
+            border: 3px solid rgba(2, 2, 5, 0.8);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .timeline-item:hover::before {
+            transform: translateY(-50%) scale(1.2);
+            box-shadow: 0 0 30px var(--accent), 0 0 60px var(--accent);
+        }
+
+        .timeline-item h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: clamp(22px, 2vw, 28px);
+            font-family: "Bahnschrift", "Segoe UI", sans-serif;
+            text-shadow: 0 0 16px var(--accent);
+        }
+
+        .timeline-item p {
+            font-size: clamp(18px, 1.8vw, 24px);
+            line-height: 1.42;
+            color: var(--muted);
+            margin: 0;
+            font-family: "Segoe UI", "Aptos", sans-serif;
+        }
+
+        /* Blueprint Modal CSS */
+        .blueprint-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .blueprint-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .blueprint-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(2, 2, 5, 0.85);
+            backdrop-filter: blur(12px);
+        }
+
+        .blueprint-container {
+            position: relative;
+            z-index: 2001;
+            max-width: 90vw;
+            max-height: 90vh;
+            border: 1px solid var(--sky);
+            box-shadow: 0 0 40px rgba(56, 189, 248, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.5);
+            transform: scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .blueprint-modal.active .blueprint-container {
+            transform: scale(1);
+        }
+
+        .blueprint-close {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+            border: 1px solid var(--red);
+            padding: 8px 16px;
+            font: 800 14px "Bahnschrift", sans-serif;
+            border-radius: 6px;
+            cursor: pointer;
+            text-shadow: 0 0 8px var(--red);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+            z-index: 2002;
+            transition: 0.2s;
+        }
+
+        .blueprint-close:hover {
+            background: var(--red);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+        }
+
+        .blueprint-img {
+            max-width: 100%;
+            max-height: 80vh;
+            display: block;
+            object-fit: contain;
+            /* The Magic Filter for bright white/colored diagrams */
+            filter: invert(1) hue-rotate(180deg) brightness(1.2) contrast(1.1) drop-shadow(0 0 10px rgba(56, 189, 248, 0.3));
+        }
+
+        .blueprint-scanline {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(to bottom, transparent, rgba(56, 189, 248, 0.25), transparent);
+            height: 15%;
+            width: 100%;
+            animation: scanline 4s linear infinite;
+            z-index: 2002;
+        }
+
+        @keyframes scanline {
+            0% {
+                top: -20%;
+            }
+
+            100% {
+                top: 120%;
+            }
+        }
+
+        .btn-blueprint {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            margin-top: 14px;
+            font: 800 18px/1 "Bahnschrift", sans-serif;
+            letter-spacing: 0.1em;
+            color: var(--sky);
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid var(--sky);
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2), inset 0 0 10px rgba(56, 189, 248, 0.1);
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn-blueprint.gold {
+            color: var(--gold);
+            background: rgba(245, 158, 11, 0.08);
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2), inset 0 0 10px rgba(245, 158, 11, 0.1);
+        }
+
+        .btn-blueprint:hover {
+            background: rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.5), inset 0 0 15px rgba(56, 189, 248, 0.3);
+            text-shadow: 0 0 8px var(--sky);
+            transform: translateY(-3px);
+        }
+
+        .btn-blueprint.gold:hover {
+            background: rgba(245, 158, 11, 0.2);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.5), inset 0 0 15px rgba(245, 158, 11, 0.3);
+            text-shadow: 0 0 8px var(--gold);
+        }
+
+        .btn-blueprint::before {
+            content: "⚡";
+            margin-right: 12px;
+            font-size: 20px;
+            filter: drop-shadow(0 0 5px currentColor);
+        }
+    </style>
 </head>
+
 <body>
-  <div class="progress" id="progress"></div>
-  <div class="dots" id="dots"></div>
-  <div class="counter" id="counter">01 / 11</div>
+    <div class="progress" id="progress"></div>
+    <div class="dots" id="dots"></div>
+    <div class="counter" id="counter">01 / 11</div>
 
-  <main class="deck" id="deck">
+    <main class="deck" id="deck">
 
-    <!-- 1. COVER -->
-    <section class="slide active" data-title="Cover">
-      <div class="kicker reveal-left">CST104 · Team 8 · Assignment</div>
-      <h1 class="reveal-left d1" id="typewriter-title"><span class="tw-line" id="tw-line1"></span><br><span class="tw-line" id="tw-line2"></span><br><span class="tw-line" id="tw-line3"></span></h1>
-      <p class="reveal d2">A full-system walkthrough of hardware control, AI-driven operations, network protocols, database logic, and the touch interface — one closed digital loop.</p>
-      <div class="metric-rail reveal-scale d3">
-        <div class="metric" style="--accent:var(--nv)"><strong>CPU + MCU</strong><span>Main brain + real-time control core</span></div>
-        <div class="metric" style="--accent:var(--sky)"><strong>2 AI Engines</strong><span>Inventory forecasting & predictive maintenance</span></div>
-        <div class="metric" style="--accent:var(--purple)"><strong>4 Modules</strong><span>Hardware · Network · Database · Interface</span></div>
-      </div>
-    </section>
-
-    <!-- 2. SYSTEM MAP -->
-    <section class="slide" data-title="System Map">
-      <div class="kicker reveal-left">System Map</div>
-      <h2 class="reveal-left d1">The machine works as one <span class="green pulse">closed digital loop</span>.</h2>
-      <div class="flow reveal d2">
-        <div class="node" style="--accent:var(--sky)"><h3>Touch UI</h3><p>Customer selects and customises the drink.</p></div>
-        <div class="node" style="--accent:var(--nv)"><h3>Database</h3><p>Checks recipe, stock, and transaction records.</p></div>
-        <div class="node" style="--accent:var(--gold)"><h3>Payment</h3><p>TCP protects transaction confirmation.</p></div>
-        <div class="node" style="--accent:var(--purple)"><h3>CPU + MCU</h3><p>Coordinates logic, sensors, motors, and AI.</p></div>
-      </div>
-      <p class="reveal d4">Every order updates stock, drives mechanical control, and feeds cloud monitoring — front end, hardware, and backend all move together.</p>
-    </section>
-
-    <!-- 3. HARDWARE -->
-    <section class="slide" data-title="Hardware">
-      <div class="kicker reveal-left">1. Hardware Control</div>
-      <h2 class="reveal-left d1">CPU plans the drink; <span class="blue">MCU makes the machine respond instantly</span>.</h2>
-      <div class="grid reveal d2">
-        <div class="panel" style="--accent:var(--nv)"><h3>CPU — Main Brain</h3><p>High-level operations: UI display, internet payments, and the interface that runs the AI algorithms.</p></div>
-        <div class="panel" style="--accent:var(--sky)"><h3>MCU — Small Brain</h3><p>Fast, precise execution: connects sensors and motors, controls pump switches, and reads temperature.</p></div>
-        <div class="panel" style="--accent:var(--purple)"><h3>RAM — Working Memory</h3><p>Temporary draft space so the machine presents information smoothly without getting stuck.</p></div>
-      </div>
-      <div class="grid four reveal d4">
-        <div class="panel" style="--accent:var(--nv)"><p><strong class="green">Grinding Motor</strong><br>DC motor; MCU controls run time via relay to grind the correct bean amount per order.</p></div>
-        <div class="panel" style="--accent:var(--sky)"><p><strong class="blue">Peristaltic Pumps</strong><br>Move water, milk & syrup accurately; liquid only touches the tube, improving hygiene.</p></div>
-        <div class="panel" style="--accent:var(--purple)"><p><strong class="purple">Stepper Motor</strong><br>Releases one paper cup at a time and positions it precisely and safely.</p></div>
-        <div class="panel" style="--accent:var(--gold)"><p><strong class="gold">Temperature & Load Cells</strong><br>Feedback keeps brewing heat and pour weight consistent every time.</p></div>
-      </div>
-    </section>
-
-    <!-- 4. SENSORS / ARCHITECTURE -->
-    <section class="slide" data-title="Sensors">
-      <div class="kicker reveal-left">1.3 – 1.4 Sensors & Architecture</div>
-      <h2 class="reveal-left d1">Sensors are the <span class="gold pulse">monitoring nervous system</span> of the machine.</h2>
-      <div class="grid two reveal d2">
-        <div class="panel" style="--accent:var(--red)"><h3>Temperature Sensor</h3><p>Checks water heating tank; MCU only allows hot water into brewing once ~92°C is reached, matching optimal extraction standards.</p></div>
-        <div class="panel" style="--accent:var(--sky)"><h3>Weight Sensor (Load Cell)</h3><p>Under the cup platform — stops pumps automatically at the correct pour weight, reducing overflow and improving consistency.</p></div>
-      </div>
-      <div class="grid two reveal d4">
-        <div class="panel" style="--accent:var(--nv)"><h3>Raw Material Tank Load Cell</h3><p>Measures remaining stock of beans/powder; data feeds the inventory-forecasting AI on the CPU.</p></div>
-        <div class="panel" style="--accent:var(--purple)"><h3>Water Pump Vibration Sensor</h3><p>Monitors abnormal shaking; unusual patterns are reported to the predictive-maintenance AI for early warning.</p></div>
-      </div>
-    </section>
-
-    <!-- 5. AI -->
-    <section class="slide" data-title="AI">
-      <div class="kicker reveal-left">1.5 AI Selection</div>
-      <h2 class="reveal-left d1">The AI value is backstage: <span class="green pulse">fewer stockouts</span> and <span class="blue pulse">earlier repairs</span>.</h2>
-      <div class="grid two">
-        <div class="panel reveal-left d2" style="--accent:var(--nv)"><h3>Inventory Forecasting</h3><p>Load cells track remaining raw materials. The CPU uses AI-based demand forecasting to predict consumption rates and trigger restock notices before ingredients run out.</p></div>
-        <div class="panel reveal-right d3" style="--accent:var(--sky)"><h3>Predictive Maintenance</h3><p>Vibration and current signals reveal abnormal pump behaviour — blockages and wear — before complete mechanical failure occurs.</p></div>
-      </div>
-      <div class="grid two reveal d5">
-        <div class="panel" style="--accent:var(--gold)"><p><strong class="gold">Stock Example:</strong> if bubbles are predicted to run out within 2 hours, the system updates the UI and removes affected drinks from the menu, syncing the inventory database instantly.</p></div>
-        <div class="panel" style="--accent:var(--red)"><p><strong class="red">Maintenance Example:</strong> if a pump is likely to fail within 48 hours, the system reduces its operating frequency and sends a replacement reminder automatically.</p></div>
-      </div>
-    </section>
-
-    <!-- 6. PROTOCOLS -->
-    <section class="slide" data-title="Protocols">
-      <div class="kicker reveal-left">2.1 – 2.2 Transport Protocols</div>
-      <h2 class="reveal-left d1"><span class="green pulse">TCP protects payments</span>; <span class="blue pulse">UDP keeps screen media smooth</span>.</h2>
-      <div class="grid two">
-        <div class="panel reveal-left d2" style="--accent:var(--nv)"><h3>TCP — Connection-Oriented</h3><p>Three-way handshake, ACK packets, and retransmission guarantee accuracy and order. Best for credit card / e-wallet payment data, where Deduction → Settled must occur in strict chronological order.</p></div>
-        <div class="panel reveal-right d3" style="--accent:var(--sky)"><h3>UDP — Connectionless</h3><p>No handshake, smaller headers, zero ACK overhead — very fast, low latency. Best for live video advertisements: a lost frame causes a tiny imperfection, not a freeze.</p></div>
-      </div>
-      <p class="reveal d4">The system is <span class="gold pulse">not single-protocol</span>. It chooses TCP or UDP based on the risk and timing needs of each data type — a hybrid scheme by design.</p>
-    </section>
-
-    <!-- 7. NETWORK FLOW -->
-    <section class="slide" data-title="Network">
-      <div class="kicker reveal-left">2.3 Network Flow Map</div>
-      <h2 class="reveal-left d1">Different data streams share the cloud, but use <span class="gold pulse">different routes</span>.</h2>
-      <div class="flow reveal d2">
-        <div class="node" style="--accent:var(--nv)"><h3>Vending Machine</h3><p>Payment terminal & LCD advertising screen generate the data.</p></div>
-        <div class="node" style="--accent:var(--gold)"><h3>TCP Route</h3><p>Financial transaction data stream → Transaction & DB Server.</p></div>
-        <div class="node" style="--accent:var(--sky)"><h3>UDP Route</h3><p>Real-time video streaming → Media Streaming Server.</p></div>
-        <div class="node" style="--accent:var(--purple)"><h3>Cloud Server</h3><p>Receives sales, stock status, machine health & ad media.</p></div>
-      </div>
-      <p class="reveal d4">Figure 2: the end-to-end transmission path — TCP for financial and database transactions, UDP for media streaming — running simultaneously through the cloud backend.</p>
-    </section>
-
-    <!-- 8. DATABASE -->
-    <section class="slide" data-title="Database">
-      <div class="kicker reveal-left">3. Ingredient & Inventory Database</div>
-      <h2 class="reveal-left d1">The database decides whether the machine should <span class="green pulse">accept the order</span>.</h2>
-      <div class="grid">
-        <div class="panel reveal d2" style="--accent:var(--nv)"><h3>1. Pre-Purchase</h3><p>Local database checks recipe, ingredients & supplies. If insufficient, displays "cannot be made" and signals the server it needs restocking.</p></div>
-        <div class="panel reveal d3" style="--accent:var(--gold)"><h3>2. Purchase</h3><p>Payment with a time limit produces a Proof-of-Purchase (POP) ID on success; the transaction record is stored online — otherwise the order is nulled.</p></div>
-        <div class="panel reveal d4" style="--accent:var(--sky)"><h3>3. Post-Purchase</h3><p>Recipe fetched from server, drink made, stock updated. If ingredients now run low, system requests restock and hides affected drinks.</p></div>
-      </div>
-      <p class="reveal d5">Figure 3 (Data Flow Diagram): Customer → Places order → Local Database checks ingredients → syncs to Server; Payment → POP produced → Makes ordered beverages → updates ingredient stock.</p>
-    </section>
-
-    <!-- 9. INTERFACE -->
-    <section class="slide" data-title="Interface">
-      <div class="kicker reveal-left">4. Step-by-Step Logic & Interface</div>
-      <h2 class="reveal-left d1" style="font-size:clamp(30px,3.8vw,50px)">
-        Touch UI guides each step — <span class="purple pulse">see it happen live</span> right now.
-      </h2>
-
-      <div class="interface-layout">
-
-        <!-- COL 1: Step flow -->
-        <div class="step-flow reveal-left d2" id="stepFlow">
-          <div class="step-node" data-step="0" style="--accent:var(--sky)">
-            <div class="sn-icon">👆</div>
-            <div class="sn-body"><h3>Select Drink</h3><p>Choose item; system checks online DB for recipe and stock.</p></div>
-          </div>
-          <div class="step-node" data-step="1" style="--accent:var(--purple)">
-            <div class="sn-icon">🎛️</div>
-            <div class="sn-body"><h3>Customise</h3><p>Temp / milk / size / sugar — stepper + pump config set.</p></div>
-          </div>
-          <div class="step-node" data-step="2" style="--accent:var(--nv)">
-            <div class="sn-icon">🗄️</div>
-            <div class="sn-body"><h3>DB Stock Check</h3><p>Local database validates ingredients before payment.</p></div>
-          </div>
-          <div class="step-node" data-step="3" style="--accent:var(--gold)">
-            <div class="sn-icon">💳</div>
-            <div class="sn-body"><h3>TCP Payment</h3><p>Timed window; three-way handshake confirms transaction.</p></div>
-          </div>
-          <div class="step-node" data-step="4" style="--accent:var(--nv)">
-            <div class="sn-icon">⚙️</div>
-            <div class="sn-body"><h3>MCU Prepare</h3><p>Motors, pumps & heater fire in sequence; sensors close the loop.</p></div>
-          </div>
-          <div class="step-node" data-step="5" style="--accent:var(--sky)">
-            <div class="sn-icon">📡</div>
-            <div class="sn-body"><h3>Sync & Restock</h3><p>Stock updated in DB · POP issued · AI re-evaluates forecast.</p></div>
-          </div>
-        </div>
-
-        <!-- COL 2: Live order feed -->
-        <div class="live-col reveal d3">
-          <div class="live-header">
-            <h3>🖥️ Live Order Queue</h3>
-            <span class="live-badge"><div class="live-dot"></div> LIVE</span>
-          </div>
-
-          <div class="stats-bar">
-            <div class="stat-chip" style="--accent:var(--nv)"><strong id="statCount">0</strong><span>Orders</span></div>
-            <div class="stat-chip" style="--accent:var(--gold)"><strong id="statRevenue">RM0</strong><span>Revenue</span></div>
-            <div class="stat-chip" style="--accent:var(--purple)"><strong id="statTop">—</strong><span>Top Drink</span></div>
-          </div>
-
-          <div id="orderFeed">
-            <div class="empty-feed" id="emptyMsg">Waiting for first order… 📱 Scan the QR →</div>
-          </div>
-        </div>
-
-        <!-- COL 3: QR + Sensor -->
-        <div class="qr-col reveal-right d4">
-          <div class="qr-widget">
-            <div class="qr-live-badge"><div class="qr-live-dot"></div> ⚡ LIVE DEMO — SCAN NOW</div>
-            <div class="qr-title">📱 Try the Vending Machine!</div>
-            <div class="qr-desc">
-              Scan → select a drink → customise → pay. Your order pops up on this screen in <strong style="color:var(--sky)">real time</strong> via Supabase Realtime.
+        <!-- 1. COVER -->
+        <section class="slide active" data-title="Cover">
+            <div class="kicker reveal-left">CST104 · Team 8 · Assignment</div>
+            <h1 class="reveal-left d1" id="typewriter-title"><span class="tw-line" id="tw-line1"></span><br><span
+                    class="tw-line" id="tw-line2"></span><br><span class="tw-line" id="tw-line3"></span></h1>
+            <p class="reveal d2">A full-system walkthrough of hardware control, AI-driven operations, network protocols,
+                database logic, and the touch interface — one closed digital loop.</p>
+            <div class="metric-rail reveal-scale d3">
+                <div class="metric" style="--accent:var(--nv)"><strong>CPU + MCU</strong><span>Main brain + real-time
+                        control core</span></div>
+                <div class="metric" style="--accent:var(--sky)"><strong>2 AI Engines</strong><span>Inventory forecasting
+                        & predictive maintenance</span></div>
+                <div class="metric" style="--accent:var(--purple)"><strong>4 Modules</strong><span>Hardware · Network ·
+                        Database · Interface</span></div>
             </div>
-            <div class="qr-img-wrap">
-              <img id="qrImg" alt="Scan to order" />
-            </div>
-            <div class="qr-url" id="qrUrlText"></div>
-          </div>
+        </section>
 
-          <div class="sensor-mini">
-            <h3>🔬 MCU Sensor Readings</h3>
-            <div class="sensor-row-mini">
-              <div class="sensor-chip-mini"><span class="sl">Temp</span><span class="sv" id="liveTemp">92°C</span></div>
-              <div class="sensor-chip-mini"><span class="sl">Weight</span><span class="sv" id="liveWeight">0g</span></div>
-              <div class="sensor-chip-mini"><span class="sl">Pump</span><span class="sv" id="livePump">idle</span></div>
+        <!-- 2. SYSTEM MAP -->
+        <section class="slide" data-title="System Map">
+            <div class="kicker reveal-left">System Map</div>
+            <h2 class="reveal-left d1">The machine works as one <span class="green pulse">closed digital loop</span>.
+            </h2>
+            <div class="flow reveal d2">
+                <div class="node" style="--accent:var(--sky)">
+                    <h3>Touch UI</h3>
+                    <p>Customer selects and customises the drink.</p>
+                </div>
+                <div class="node" style="--accent:var(--nv)">
+                    <h3>Database</h3>
+                    <p>Checks recipe, stock, and transaction records.</p>
+                </div>
+                <div class="node" style="--accent:var(--gold)">
+                    <h3>Payment</h3>
+                    <p>TCP protects transaction confirmation.</p>
+                </div>
+                <div class="node" style="--accent:var(--purple)">
+                    <h3>CPU + MCU</h3>
+                    <p>Coordinates logic, sensors, motors, and AI.</p>
+                </div>
             </div>
-          </div>
+            <p class="reveal d4">Every order updates stock, drives mechanical control, and feeds cloud monitoring —
+                front end, hardware, and backend all move together.</p>
+        </section>
+
+        <!-- 3. HARDWARE -->
+        <section class="slide" data-title="Hardware">
+            <div class="kicker reveal-left">1. Hardware Control</div>
+            <h2 class="reveal-left d1">CPU plans the drink; <span class="blue">MCU makes the machine respond
+                    instantly</span>.</h2>
+            <div class="grid reveal d2">
+                <div class="panel" style="--accent:var(--nv)">
+                    <h3>CPU — Main Brain</h3>
+                    <p>High-level operations: UI display, internet payments, and the interface that runs the AI
+                        algorithms.</p>
+                </div>
+                <div class="panel" style="--accent:var(--sky)">
+                    <h3>MCU — Small Brain</h3>
+                    <p>Fast, precise execution: connects sensors and motors, controls pump switches, and reads
+                        temperature.</p>
+                </div>
+                <div class="panel" style="--accent:var(--purple)">
+                    <h3>RAM — Working Memory</h3>
+                    <p>Temporary draft space so the machine presents information smoothly without getting stuck.</p>
+                </div>
+            </div>
+            <div class="grid four reveal d4">
+                <div class="panel" style="--accent:var(--nv)">
+                    <p><strong class="green">Grinding Motor</strong><br>DC motor; MCU controls run time via relay to
+                        grind the correct bean amount per order.</p>
+                </div>
+                <div class="panel" style="--accent:var(--sky)">
+                    <p><strong class="blue">Peristaltic Pumps</strong><br>Move water, milk & syrup accurately; liquid
+                        only touches the tube, improving hygiene.</p>
+                </div>
+                <div class="panel" style="--accent:var(--purple)">
+                    <p><strong class="purple">Stepper Motor</strong><br>Releases one paper cup at a time and positions
+                        it precisely and safely.</p>
+                </div>
+                <div class="panel" style="--accent:var(--gold)">
+                    <p><strong class="gold">Temperature & Load Cells</strong><br>Feedback keeps brewing heat and pour
+                        weight consistent every time.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. SENSORS / ARCHITECTURE -->
+        <section class="slide" data-title="Sensors">
+            <div class="kicker reveal-left">1.3 – 1.4 Sensors & Architecture</div>
+            <h2 class="reveal-left d1">Sensors are the <span class="gold pulse">monitoring nervous system</span> of the
+                machine.</h2>
+            <div class="grid two reveal d2">
+                <div class="panel" style="--accent:var(--red)">
+                    <h3>Temperature Sensor</h3>
+                    <p>Checks water heating tank; MCU only allows hot water into brewing once ~92°C is reached, matching
+                        optimal extraction standards.</p>
+                </div>
+                <div class="panel" style="--accent:var(--sky)">
+                    <h3>Weight Sensor (Load Cell)</h3>
+                    <p>Under the cup platform — stops pumps automatically at the correct pour weight, reducing overflow
+                        and improving consistency.</p>
+                </div>
+            </div>
+            <div class="grid two reveal d4">
+                <div class="panel" style="--accent:var(--nv)">
+                    <h3>Raw Material Tank Load Cell</h3>
+                    <p>Measures remaining stock of beans/powder; data feeds the inventory-forecasting AI on the CPU.</p>
+                </div>
+                <div class="panel" style="--accent:var(--purple)">
+                    <h3>Water Pump Vibration Sensor</h3>
+                    <p>Monitors abnormal shaking; unusual patterns are reported to the predictive-maintenance AI for
+                        early warning.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. AI -->
+        <section class="slide" data-title="AI">
+            <div class="kicker reveal-left">1.5 AI Selection</div>
+            <h2 class="reveal-left d1">The AI value is backstage: <span class="green pulse">fewer stockouts</span> and
+                <span class="blue pulse">earlier repairs</span>.
+            </h2>
+            <div class="grid two">
+                <div class="panel reveal-left d2" style="--accent:var(--nv)">
+                    <h3>Inventory Forecasting</h3>
+                    <p>Load cells track remaining raw materials. The CPU uses AI-based demand forecasting to predict
+                        consumption rates and trigger restock notices before ingredients run out.</p>
+                </div>
+                <div class="panel reveal-right d3" style="--accent:var(--sky)">
+                    <h3>Predictive Maintenance</h3>
+                    <p>Vibration and current signals reveal abnormal pump behaviour — blockages and wear — before
+                        complete mechanical failure occurs.</p>
+                </div>
+            </div>
+            <div class="grid two reveal d5">
+                <div class="panel" style="--accent:var(--gold)">
+                    <p><strong class="gold">Stock Example:</strong> if bubbles are predicted to run out within 2 hours,
+                        the system updates the UI and removes affected drinks from the menu, syncing the inventory
+                        database instantly.</p>
+                </div>
+                <div class="panel" style="--accent:var(--red)">
+                    <p><strong class="red">Maintenance Example:</strong> if a pump is likely to fail within 48 hours,
+                        the system reduces its operating frequency and sends a replacement reminder automatically.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. PROTOCOLS -->
+        <section class="slide" data-title="Protocols">
+            <div class="kicker reveal-left">2.1 – 2.2 Transport Protocols</div>
+            <h2 class="reveal-left d1"><span class="green pulse">TCP protects payments</span>; <span
+                    class="blue pulse">UDP keeps screen media smooth</span>.</h2>
+            <table class="styled-table reveal d2" style="--accent:var(--nv);">
+                <thead>
+                    <tr>
+                        <th>Protocol</th>
+                        <th>Description & Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="reveal-left d2">
+                        <td style="color:var(--nv); font-weight:bold; font-size:clamp(20px, 1.8vw, 26px); width:35%;">
+                            TCP — Connection-Oriented</td>
+                        <td>Three-way handshake, ACK packets, and retransmission guarantee accuracy and order. Best for
+                            credit card / e-wallet payment data, where Deduction → Settled must occur in strict
+                            chronological order.</td>
+                    </tr>
+                    <tr class="reveal-right d3">
+                        <td style="color:var(--sky); font-weight:bold; font-size:clamp(20px, 1.8vw, 26px); width:35%;">
+                            UDP — Connectionless</td>
+                        <td>No handshake, smaller headers, zero ACK overhead — very fast, low latency. Best for live
+                            video
+                            advertisements: a lost frame causes a tiny imperfection, not a freeze.</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="reveal d4">The system is <span class="gold pulse">not single-protocol</span>. It chooses TCP or
+                UDP based on the risk and timing needs of each data type — a hybrid scheme by design.</p>
+        </section>
+
+        <!-- 7. NETWORK FLOW -->
+        <section class="slide" data-title="Network">
+            <div class="kicker reveal-left">2.3 Network Flow Map</div>
+            <h2 class="reveal-left d1">Different data streams share the cloud, but use <span
+                    class="gold pulse">different routes</span>.</h2>
+            <div class="flow reveal d2">
+                <div class="node" style="--accent:var(--nv)">
+                    <h3>Vending Machine</h3>
+                    <p>Payment terminal & LCD advertising screen generate the data.</p>
+                </div>
+                <div class="node" style="--accent:var(--gold)">
+                    <h3>TCP Route</h3>
+                    <p>Financial transaction data stream → Transaction & DB Server.</p>
+                </div>
+                <div class="node" style="--accent:var(--sky)">
+                    <h3>UDP Route</h3>
+                    <p>Real-time video streaming → Media Streaming Server.</p>
+                </div>
+                <div class="node" style="--accent:var(--purple)">
+                    <h3>Cloud Server</h3>
+                    <p>Receives sales, stock status, machine health & ad media.</p>
+                </div>
+            </div>
+
+            <button class="btn-blueprint reveal d4" onclick="openBlueprint('Figure 1.jpg')">ACCESS SYSTEM SCHEMATIC :
+                FIGURE 2</button>
+            <p class="reveal d5" style="margin-top: 12px; font-size: clamp(16px, 1.4vw, 20px); color: var(--muted);">The
+                end-to-end transmission path — TCP for financial and database transactions, UDP for media streaming —
+                running simultaneously through the cloud backend.</p>
+        </section>
+
+        <!-- 8. DATABASE -->
+        <section class="slide" data-title="Database">
+            <div class="kicker reveal-left">3. Ingredient & Inventory Database</div>
+            <h2 class="reveal-left d1">The database decides whether the machine should <span class="green pulse">accept
+                    the order</span>.</h2>
+            <div class="timeline reveal d2">
+                <div class="timeline-item d2" style="--accent:var(--nv)">
+                    <h3>1. Pre-Purchase</h3>
+                    <p>Local database checks recipe, ingredients & supplies. If insufficient, displays "cannot be made"
+                        and signals the server it needs restocking.</p>
+                </div>
+                <div class="timeline-item reveal d3" style="--accent:var(--gold)">
+                    <h3>2. Purchase</h3>
+                    <p>Payment with a time limit produces a Proof-of-Purchase (POP) ID on success; the transaction
+                        record is stored online — otherwise the order is nulled.</p>
+                </div>
+                <div class="timeline-item reveal d4" style="--accent:var(--sky)">
+                    <h3>3. Post-Purchase</h3>
+                    <p>Recipe fetched from server, drink made, stock updated. If ingredients now run low, system
+                        requests restock and hides affected drinks.</p>
+                </div>
+            </div>
+
+            <button class="btn-blueprint gold reveal d5" onclick="openBlueprint('Figure 2.jpg')">ACCESS SYSTEM SCHEMATIC
+                : FIGURE 3</button>
+            <p class="reveal d6" style="margin-top: 12px; font-size: clamp(16px, 1.4vw, 20px); color: var(--muted);">
+                (Data Flow Diagram): Customer → Places order → Local Database checks ingredients → syncs to Server;
+                Payment → POP produced → Makes ordered beverages → updates ingredient stock.</p>
+        </section>
+
+        <!-- 9. INTERFACE -->
+        <section class="slide" data-title="Interface">
+            <div class="kicker reveal-left">4. Step-by-Step Logic & Interface</div>
+            <h2 class="reveal-left d1" style="font-size:clamp(30px,3.8vw,50px)">
+                Touch UI guides each step — <span class="purple pulse">see it happen live</span> right now.
+            </h2>
+
+            <div class="interface-layout">
+
+                <!-- COL 1: Step flow -->
+                <div class="step-flow reveal-left d2" id="stepFlow">
+                    <div class="step-node" data-step="0" style="--accent:var(--sky)">
+                        <div class="sn-icon">👆</div>
+                        <div class="sn-body">
+                            <h3>Select Drink</h3>
+                            <p>Choose item; system checks online DB for recipe and stock.</p>
+                        </div>
+                    </div>
+                    <div class="step-node" data-step="1" style="--accent:var(--purple)">
+                        <div class="sn-icon">🎛️</div>
+                        <div class="sn-body">
+                            <h3>Customise</h3>
+                            <p>Temp / milk / size / sugar — stepper + pump config set.</p>
+                        </div>
+                    </div>
+                    <div class="step-node" data-step="2" style="--accent:var(--nv)">
+                        <div class="sn-icon">🗄️</div>
+                        <div class="sn-body">
+                            <h3>DB Stock Check</h3>
+                            <p>Local database validates ingredients before payment.</p>
+                        </div>
+                    </div>
+                    <div class="step-node" data-step="3" style="--accent:var(--gold)">
+                        <div class="sn-icon">💳</div>
+                        <div class="sn-body">
+                            <h3>TCP Payment</h3>
+                            <p>Timed window; three-way handshake confirms transaction.</p>
+                        </div>
+                    </div>
+                    <div class="step-node" data-step="4" style="--accent:var(--nv)">
+                        <div class="sn-icon">⚙️</div>
+                        <div class="sn-body">
+                            <h3>MCU Prepare</h3>
+                            <p>Motors, pumps & heater fire in sequence; sensors close the loop.</p>
+                        </div>
+                    </div>
+                    <div class="step-node" data-step="5" style="--accent:var(--sky)">
+                        <div class="sn-icon">📡</div>
+                        <div class="sn-body">
+                            <h3>Sync & Restock</h3>
+                            <p>Stock updated in DB · POP issued · AI re-evaluates forecast.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COL 2: Live order feed -->
+                <div class="live-col reveal d3">
+                    <div class="live-header">
+                        <h3>🖥️ Live Order Queue</h3>
+                        <span class="live-badge">
+                            <div class="live-dot"></div> LIVE
+                        </span>
+                    </div>
+
+                    <div class="stats-bar">
+                        <div class="stat-chip" style="--accent:var(--nv)"><strong
+                                id="statCount">0</strong><span>Orders</span></div>
+                        <div class="stat-chip" style="--accent:var(--gold)"><strong
+                                id="statRevenue">RM0</strong><span>Revenue</span></div>
+                        <div class="stat-chip" style="--accent:var(--purple)"><strong id="statTop">—</strong><span>Top
+                                Drink</span></div>
+                    </div>
+
+                    <div id="orderFeed">
+                        <div class="empty-feed" id="emptyMsg">Waiting for first order… 📱 Scan the QR →</div>
+                    </div>
+                </div>
+
+                <!-- COL 3: QR + Sensor -->
+                <div class="qr-col reveal-right d4">
+                    <div class="qr-widget">
+                        <div class="qr-live-badge">
+                            <div class="qr-live-dot"></div> ⚡ LIVE DEMO — SCAN NOW
+                        </div>
+                        <div class="qr-title">📱 Try the Vending Machine!</div>
+                        <div class="qr-desc">
+                            Scan → select a drink → customise → pay. Your order pops up on this screen in <strong
+                                style="color:var(--sky)">real time</strong> via Supabase Realtime.
+                        </div>
+                        <div class="qr-img-wrap">
+                            <img id="qrImg" alt="Scan to order" />
+                        </div>
+                        <div class="qr-url" id="qrUrlText"></div>
+                    </div>
+
+                    <div class="sensor-mini">
+                        <h3>🔬 MCU Sensor Readings</h3>
+                        <div class="sensor-row-mini">
+                            <div class="sensor-chip-mini"><span class="sl">Temp</span><span class="sv"
+                                    id="liveTemp">92°C</span></div>
+                            <div class="sensor-chip-mini"><span class="sl">Weight</span><span class="sv"
+                                    id="liveWeight">0g</span></div>
+                            <div class="sensor-chip-mini"><span class="sl">Pump</span><span class="sv"
+                                    id="livePump">idle</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. JOURNEY / VERDICT -->
+        <section class="slide" data-title="Journey">
+            <div class="kicker reveal-left">Integrated System Story</div>
+            <h2 class="reveal-left d1">One drink order activates <span class="green pulse">every module</span> in
+                sequence.</h2>
+            <div class="flow six reveal d2">
+                <div class="node" style="--accent:var(--nv)">
+                    <h3>Customer</h3>
+                    <p>Selects and customises.</p>
+                </div>
+                <div class="node" style="--accent:var(--sky)">
+                    <h3>Database</h3>
+                    <p>Checks stock first.</p>
+                </div>
+                <div class="node" style="--accent:var(--gold)">
+                    <h3>TCP Payment</h3>
+                    <p>Confirms transaction reliably.</p>
+                </div>
+                <div class="node" style="--accent:var(--purple)">
+                    <h3>CPU + MCU</h3>
+                    <p>Coordinates preparation.</p>
+                </div>
+                <div class="node" style="--accent:var(--nv)">
+                    <h3>Sensors</h3>
+                    <p>Verify temperature & weight.</p>
+                </div>
+                <div class="node" style="--accent:var(--sky)">
+                    <h3>Cloud</h3>
+                    <p>Receives sales, stock, health.</p>
+                </div>
+            </div>
+            <p class="reveal d4">This report is not four separate topics — it is <span class="gold pulse">one feedback
+                    loop</span> from user choice, to machine control, to AI-assisted backend monitoring.</p>
+            <div class="grid four reveal d5">
+                <div class="panel" style="--accent:var(--nv)">
+                    <h3>Reliable</h3>
+                    <p>TCP protects payment & database transactions.</p>
+                </div>
+                <div class="panel" style="--accent:var(--sky)">
+                    <h3>Adaptive</h3>
+                    <p>AI forecasts stock & predicts pump maintenance.</p>
+                </div>
+                <div class="panel" style="--accent:var(--gold)">
+                    <h3>Consistent</h3>
+                    <p>Sensors close the loop on temperature, weight & stock.</p>
+                </div>
+                <div class="panel" style="--accent:var(--purple)">
+                    <h3>Usable</h3>
+                    <p>Touch UI guides the customer start to finish.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 11. TEAM / RESPONSIBILITIES -->
+        <section class="slide" data-title="Team">
+            <div class="kicker reveal-left">Team Members & Responsibilities</div>
+            <h2 class="reveal-left d1">Five modules, <span class="green pulse">one integrated system</span>.</h2>
+            <table class="styled-table reveal d2" style="--accent:var(--nv); margin-top: 30px;">
+                <thead>
+                    <tr>
+                        <th>Member Name</th>
+                        <th>Responsibility</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Gan Yujie</strong> <span class="tag green"
+                                style="color:var(--nv); display:inline-block; margin-top:4px;">MBT2509003</span></td>
+                        <td>Hardware Control</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Du Weichen</strong> <span class="tag blue"
+                                style="color:var(--sky); display:inline-block; margin-top:4px;">MEC2509004</span></td>
+                        <td>AI Selection</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Wallace Chan</strong> <span class="tag gold"
+                                style="color:var(--gold); display:inline-block; margin-top:4px;">CST2604087</span></td>
+                        <td>Network Protocols</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Adelaine Tee</strong> <span class="tag purple"
+                                style="color:var(--purple); display:inline-block; margin-top:4px;">CST2604081</span>
+                        </td>
+                        <td>Database</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Chikondi Banda</strong> <span class="tag red"
+                                style="color:var(--red); display:inline-block; margin-top:4px;">CST2604610</span></td>
+                        <td>Interface Logic</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="reveal d4" style="margin-top:40px;">Thank you</p>
+        </section>
+
+    </main>
+
+    <div class="blueprint-modal" id="blueprintModal" onclick="closeBlueprint(event)">
+        <div class="blueprint-overlay"></div>
+        <div class="blueprint-container" onclick="event.stopPropagation()">
+            <button class="blueprint-close" onclick="closeBlueprint()">[ X ] CLOSE TERMINAL</button>
+            <div class="blueprint-scanline"></div>
+            <img id="blueprintImg" class="blueprint-img" src="" alt="System Schematic">
         </div>
-      </div>
-    </section>
+    </div>
 
-    <!-- 10. JOURNEY / VERDICT -->
-    <section class="slide" data-title="Journey">
-      <div class="kicker reveal-left">Integrated System Story</div>
-      <h2 class="reveal-left d1">One drink order activates <span class="green pulse">every module</span> in sequence.</h2>
-      <div class="flow six reveal d2">
-        <div class="node" style="--accent:var(--nv)"><h3>Customer</h3><p>Selects and customises.</p></div>
-        <div class="node" style="--accent:var(--sky)"><h3>Database</h3><p>Checks stock first.</p></div>
-        <div class="node" style="--accent:var(--gold)"><h3>TCP Payment</h3><p>Confirms transaction reliably.</p></div>
-        <div class="node" style="--accent:var(--purple)"><h3>CPU + MCU</h3><p>Coordinates preparation.</p></div>
-        <div class="node" style="--accent:var(--nv)"><h3>Sensors</h3><p>Verify temperature & weight.</p></div>
-        <div class="node" style="--accent:var(--sky)"><h3>Cloud</h3><p>Receives sales, stock, health.</p></div>
-      </div>
-      <p class="reveal d4">This report is not four separate topics — it is <span class="gold pulse">one feedback loop</span> from user choice, to machine control, to AI-assisted backend monitoring.</p>
-      <div class="grid four reveal d5">
-        <div class="panel" style="--accent:var(--nv)"><h3>Reliable</h3><p>TCP protects payment & database transactions.</p></div>
-        <div class="panel" style="--accent:var(--sky)"><h3>Adaptive</h3><p>AI forecasts stock & predicts pump maintenance.</p></div>
-        <div class="panel" style="--accent:var(--gold)"><h3>Consistent</h3><p>Sensors close the loop on temperature, weight & stock.</p></div>
-        <div class="panel" style="--accent:var(--purple)"><h3>Usable</h3><p>Touch UI guides the customer start to finish.</p></div>
-      </div>
-    </section>
+    <script>
+        // Blueprint Modal Logic
+        const blueprintModal = document.getElementById('blueprintModal');
+        const blueprintImg = document.getElementById('blueprintImg');
 
-    <!-- 11. TEAM / RESPONSIBILITIES -->
-    <section class="slide" data-title="Team">
-      <div class="kicker reveal-left">Team Members & Responsibilities</div>
-      <h2 class="reveal-left d1">Five modules, <span class="green pulse">one integrated system</span>.</h2>
-      <div class="grid five reveal d2">
-        <div class="panel" style="--accent:var(--nv)"><h3>Gan Yujie</h3><p><span class="tag green" style="color:var(--nv)">MBT2509003</span><br>Hardware Control</p></div>
-        <div class="panel" style="--accent:var(--sky)"><h3>Du Weichen</h3><p><span class="tag blue" style="color:var(--sky)">MEC2509004</span><br>AI Selection</p></div>
-        <div class="panel" style="--accent:var(--gold)"><h3>Wallace Chan</h3><p><span class="tag gold" style="color:var(--gold)">CST2604087</span><br>Network Protocols</p></div>
-        <div class="panel" style="--accent:var(--purple)"><h3>Adelaine Tee</h3><p><span class="tag purple" style="color:var(--purple)">CST2604081</span><br>Database</p></div>
-        <div class="panel" style="--accent:var(--red)"><h3>Chikondi Banda</h3><p><span class="tag red" style="color:var(--red)">CST2604610</span><br>Interface Logic</p></div>
-      </div>
-      <p class="reveal d4" style="margin-top:40px;">Thank you</p>
-    </section>
+        function openBlueprint(imgSrc) {
+            blueprintImg.src = imgSrc;
+            blueprintModal.classList.add('active');
+        }
 
-  </main>
+        function closeBlueprint(e) {
+            blueprintModal.classList.remove('active');
+            setTimeout(() => { blueprintImg.src = ''; }, 400); // Clear after fade out
+        }
 
-  <script>
-    const ORDER_PAGE_URL    = 'https://vibe-coding-platform-mbjq.vercel.app/my_apps/order.html';
-    const SUPABASE_URL      = 'https://puzrvghgcyxzinxjzczn.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1enJ2Z2hnY3l4emlueGp6Y3puIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNTM1ODcsImV4cCI6MjA5NjkyOTU4N30.VvcTH2l12rAji3PCUBVyp1kpQWOrhtjwXI5BhAZdLc0';
+        // Handle ESC key to close modal
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && blueprintModal.classList.contains('active')) {
+                closeBlueprint();
+            }
+        });
 
-    const deck    = document.getElementById("deck");
-    const slides  = [...document.querySelectorAll(".slide")];
-    const counter = document.getElementById("counter");
-    const progress= document.getElementById("progress");
-    const dots    = document.getElementById("dots");
+        const ORDER_PAGE_URL = 'https://vibe-coding-platform-mbjq.vercel.app/my_apps/order.html';
+        const SUPABASE_URL = 'https://puzrvghgcyxzinxjzczn.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1enJ2Z2hnY3l4emlueGp6Y3puIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNTM1ODcsImV4cCI6MjA5NjkyOTU4N30.VvcTH2l12rAji3PCUBVyp1kpQWOrhtjwXI5BhAZdLc0';
 
-    slides.forEach((slide, i) => {
-      const dot = document.createElement("button");
-      dot.className = "dot";
-      dot.title = `Slide ${i + 1}: ${slide.dataset.title}`;
-      dot.addEventListener("click", () => slide.scrollIntoView({ behavior: "smooth" }));
-      dots.appendChild(dot);
-    });
-    const dotEls = [...document.querySelectorAll(".dot")];
+        const deck = document.getElementById("deck");
+        const slides = [...document.querySelectorAll(".slide")];
+        const counter = document.getElementById("counter");
+        const progress = document.getElementById("progress");
+        const dots = document.getElementById("dots");
 
-    function setActive() {
-      const index = Math.round(deck.scrollTop / window.innerHeight);
-      slides.forEach((s, i) => s.classList.toggle("active", i === index));
-      dotEls.forEach((d, i) => d.classList.toggle("active", i === index));
-      counter.textContent = `${String(index + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}`;
-      progress.style.width = `${((index + 1) / slides.length) * 100}%`;
-    }
-    deck.addEventListener("scroll", setActive, { passive: true });
-    window.addEventListener("keydown", (e) => {
-      const i = Math.round(deck.scrollTop / window.innerHeight);
-      if (["ArrowDown", "PageDown", " "].includes(e.key)) {
-        e.preventDefault();
-        slides[Math.min(i + 1, slides.length - 1)].scrollIntoView({ behavior: "smooth" });
-      }
-      if (["ArrowUp", "PageUp"].includes(e.key)) {
-        e.preventDefault();
-        slides[Math.max(i - 1, 0)].scrollIntoView({ behavior: "smooth" });
-      }
-    });
-    setActive();
+        slides.forEach((slide, i) => {
+            const dot = document.createElement("button");
+            dot.className = "dot";
+            dot.title = `Slide ${i + 1}: ${slide.dataset.title}`;
+            dot.addEventListener("click", () => slide.scrollIntoView({ behavior: "smooth" }));
+            dots.appendChild(dot);
+        });
+        const dotEls = [...document.querySelectorAll(".dot")];
 
-    (function setupQR() {
-      const img = document.getElementById('qrImg');
-      const txt = document.getElementById('qrUrlText');
-      if (!img) return;
-      const isConfigured = !ORDER_PAGE_URL.includes('YOUR_');
-      const targetUrl = isConfigured ? ORDER_PAGE_URL : 'https://example.com';
-      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&bgcolor=ffffff&color=020205&data=${encodeURIComponent(targetUrl)}`;
-      if (txt) txt.textContent = isConfigured ? ORDER_PAGE_URL : '⚠ Set ORDER_PAGE_URL in the script';
-    })();
+        function setActive() {
+            const index = Math.round(deck.scrollTop / window.innerHeight);
+            slides.forEach((s, i) => s.classList.toggle("active", i === index));
+            dotEls.forEach((d, i) => d.classList.toggle("active", i === index));
+            counter.textContent = `${String(index + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}`;
+            progress.style.width = `${((index + 1) / slides.length) * 100}%`;
+        }
+        deck.addEventListener("scroll", setActive, { passive: true });
+        window.addEventListener("keydown", (e) => {
+            const i = Math.round(deck.scrollTop / window.innerHeight);
+            if (["ArrowDown", "PageDown", " "].includes(e.key)) {
+                e.preventDefault();
+                slides[Math.min(i + 1, slides.length - 1)].scrollIntoView({ behavior: "smooth" });
+            }
+            if (["ArrowUp", "PageUp"].includes(e.key)) {
+                e.preventDefault();
+                slides[Math.max(i - 1, 0)].scrollIntoView({ behavior: "smooth" });
+            }
+        });
+        setActive();
 
-    let allOrders = [];
+        (function setupQR() {
+            const img = document.getElementById('qrImg');
+            const txt = document.getElementById('qrUrlText');
+            if (!img) return;
+            const isConfigured = !ORDER_PAGE_URL.includes('YOUR_');
+            const targetUrl = isConfigured ? ORDER_PAGE_URL : 'https://example.com';
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&bgcolor=ffffff&color=020205&data=${encodeURIComponent(targetUrl)}`;
+            if (txt) txt.textContent = isConfigured ? ORDER_PAGE_URL : '⚠ Set ORDER_PAGE_URL in the script';
+        })();
 
-    function timeAgo(ts) {
-      if (!ts) return '';
-      const d = Math.floor((Date.now() - new Date(ts)) / 1000);
-      if (d < 5)  return 'just now';
-      if (d < 60) return `${d}s ago`;
-      return `${Math.floor(d / 60)}m ago`;
-    }
+        let allOrders = [];
 
-    function renderOrderCard(o) {
-      const card = document.createElement('div');
-      card.className = 'order-card';
-      const tags = [o.temp, o.milk, o.size, o.sugar, o.payment].filter(Boolean);
-      card.innerHTML = `
+        function timeAgo(ts) {
+            if (!ts) return '';
+            const d = Math.floor((Date.now() - new Date(ts)) / 1000);
+            if (d < 5) return 'just now';
+            if (d < 60) return `${d}s ago`;
+            return `${Math.floor(d / 60)}m ago`;
+        }
+
+        function renderOrderCard(o) {
+            const card = document.createElement('div');
+            card.className = 'order-card';
+            const tags = [o.temp, o.milk, o.size, o.sugar, o.payment].filter(Boolean);
+            card.innerHTML = `
         <div class="oc-top">
           <span class="oc-emoji">${o.emoji || '☕'}</span>
           <div>
@@ -779,146 +1840,147 @@
         </div>
         <div class="oc-tags">${tags.map(t => `<span class="oc-tag">${t}</span>`).join('')}</div>
         <div class="oc-time">${timeAgo(o.created_at)}</div>`;
-      return card;
-    }
-
-    function updateStats() {
-      document.getElementById('statCount').textContent = allOrders.length;
-      const rev = allOrders.reduce((s, o) => s + Number(o.price || 0), 0);
-      document.getElementById('statRevenue').textContent = 'RM' + rev.toFixed(0);
-      const tally = {};
-      allOrders.forEach(o => { tally[o.drink] = (tally[o.drink] || 0) + 1; });
-      const top = Object.entries(tally).sort((a, b) => b[1] - a[1])[0];
-      document.getElementById('statTop').textContent = top ? top[0].split(' ')[0] : '—';
-    }
-
-    function pushOrder(o) {
-      allOrders.unshift(o);
-      const feed  = document.getElementById('orderFeed');
-      const empty = document.getElementById('emptyMsg');
-      if (empty) empty.remove();
-      feed.prepend(renderOrderCard(o));
-      while (feed.children.length > 5) feed.removeChild(feed.lastChild);
-      updateStats();
-      animateStepFlow();
-    }
-
-    let stepAnimTimer = null;
-    function animateStepFlow() {
-      const nodes = document.querySelectorAll('.step-node');
-      let i = 0;
-      clearInterval(stepAnimTimer);
-      nodes.forEach(n => n.classList.remove('lit'));
-      stepAnimTimer = setInterval(() => {
-        if (i > 0) nodes[i - 1].classList.remove('lit');
-        if (i < nodes.length) { nodes[i].classList.add('lit'); i++; }
-        else clearInterval(stepAnimTimer);
-      }, 700);
-    }
-
-    (function sensorFlicker() {
-      const temps   = ['88°C','90°C','91°C','92°C','93°C'];
-      const weights = ['0g','48g','112g','198g','240g'];
-      const pumps   = ['idle','on','on','slow','stop'];
-      setInterval(() => {
-        const idx = Math.floor(Math.random() * temps.length);
-        const t = document.getElementById('liveTemp');
-        const w = document.getElementById('liveWeight');
-        const p = document.getElementById('livePump');
-        if (t) t.textContent = temps[idx];
-        if (w) w.textContent = weights[idx];
-        if (p) p.textContent = pumps[idx];
-      }, 2200);
-    })();
-
-    (async function initFeed() {
-      if (SUPABASE_URL.includes('YOUR_')) return;
-      try {
-        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
-        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const { data } = await sb.from('orders').select('*').order('created_at', { ascending: false }).limit(5);
-        if (data && data.length) [...data].reverse().forEach(pushOrder);
-        sb.channel('orders-main')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
-            pushOrder(payload.new);
-          })
-          .subscribe();
-      } catch (e) {
-        console.warn('Supabase live feed init failed:', e);
-      }
-    })();
-
-    /* ══════════════════════════════════════
-       TYPEWRITER TITLE — sound starts with first character
-    ══════════════════════════════════════ */
-    (function () {
-      const line1 = document.getElementById("tw-line1");
-      const line2 = document.getElementById("tw-line2");
-      const line3 = document.getElementById("tw-line3");
-      if (!line1 || !line2 || !line3) return;
-
-      const lines = [
-        [{ text: "AUTOMATED", cls: null }],
-        [{ text: "BEVERAGE",  cls: "green" }],
-        [{ text: "VENDING MACHINE", cls: "blue" }]
-      ];
-      const lineEls = [line1, line2, line3];
-
-      let audioCtx = null;
-      function beep() {
-        try {
-          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc  = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = "square";
-          osc.frequency.value = 920 + Math.random() * 140;
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          const now = audioCtx.currentTime;
-          gain.gain.setValueAtTime(0.07, now);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
-          osc.start(now); osc.stop(now + 0.05);
-        } catch (e) {}
-      }
-
-      const cursor = document.createElement("span");
-      cursor.className = "tw-cursor";
-      lineEls[0].appendChild(cursor);
-
-      let lineIdx = 0, segIdx = 0, charIdx = 0, currentSpan = null;
-
-      function step() {
-        if (lineIdx >= lines.length) {
-          setTimeout(() => cursor.classList.add("tw-done"), 1400);
-          return;
+            return card;
         }
-        const segs = lines[lineIdx];
-        if (segIdx >= segs.length) {
-          lineIdx++; segIdx = 0; charIdx = 0; currentSpan = null;
-          if (lineIdx < lines.length) { lineEls[lineIdx].appendChild(cursor); setTimeout(step, 260); }
-          else step();
-          return;
-        }
-        const seg    = segs[segIdx];
-        const lineEl = lineEls[lineIdx];
-        if (charIdx === 0) {
-          if (seg.cls) { currentSpan = document.createElement("span"); currentSpan.className = seg.cls; lineEl.insertBefore(currentSpan, cursor); }
-          else currentSpan = null;
-        }
-        const ch = seg.text[charIdx];
-        if (currentSpan) currentSpan.textContent += ch;
-        else lineEl.insertBefore(document.createTextNode(ch), cursor);
-        /* ── FIX: beep on every character, including the very first ── */
-        beep();
-        charIdx++;
-        if (charIdx >= seg.text.length) { segIdx++; charIdx = 0; }
-        const delay = ch === " " ? 90 : 55 + Math.random() * 55;
-        setTimeout(step, delay);
-      }
 
-      /* Start immediately — no waiting for user interaction */
-      setTimeout(step, 700);
-    })();
-  </script>
+        function updateStats() {
+            document.getElementById('statCount').textContent = allOrders.length;
+            const rev = allOrders.reduce((s, o) => s + Number(o.price || 0), 0);
+            document.getElementById('statRevenue').textContent = 'RM' + rev.toFixed(0);
+            const tally = {};
+            allOrders.forEach(o => { tally[o.drink] = (tally[o.drink] || 0) + 1; });
+            const top = Object.entries(tally).sort((a, b) => b[1] - a[1])[0];
+            document.getElementById('statTop').textContent = top ? top[0].split(' ')[0] : '—';
+        }
+
+        function pushOrder(o) {
+            allOrders.unshift(o);
+            const feed = document.getElementById('orderFeed');
+            const empty = document.getElementById('emptyMsg');
+            if (empty) empty.remove();
+            feed.prepend(renderOrderCard(o));
+            while (feed.children.length > 5) feed.removeChild(feed.lastChild);
+            updateStats();
+            animateStepFlow();
+        }
+
+        let stepAnimTimer = null;
+        function animateStepFlow() {
+            const nodes = document.querySelectorAll('.step-node');
+            let i = 0;
+            clearInterval(stepAnimTimer);
+            nodes.forEach(n => n.classList.remove('lit'));
+            stepAnimTimer = setInterval(() => {
+                if (i > 0) nodes[i - 1].classList.remove('lit');
+                if (i < nodes.length) { nodes[i].classList.add('lit'); i++; }
+                else clearInterval(stepAnimTimer);
+            }, 700);
+        }
+
+        (function sensorFlicker() {
+            const temps = ['88°C', '90°C', '91°C', '92°C', '93°C'];
+            const weights = ['0g', '48g', '112g', '198g', '240g'];
+            const pumps = ['idle', 'on', 'on', 'slow', 'stop'];
+            setInterval(() => {
+                const idx = Math.floor(Math.random() * temps.length);
+                const t = document.getElementById('liveTemp');
+                const w = document.getElementById('liveWeight');
+                const p = document.getElementById('livePump');
+                if (t) t.textContent = temps[idx];
+                if (w) w.textContent = weights[idx];
+                if (p) p.textContent = pumps[idx];
+            }, 2200);
+        })();
+
+        (async function initFeed() {
+            if (SUPABASE_URL.includes('YOUR_')) return;
+            try {
+                const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+                const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                const { data } = await sb.from('orders').select('*').order('created_at', { ascending: false }).limit(5);
+                if (data && data.length) [...data].reverse().forEach(pushOrder);
+                sb.channel('orders-main')
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+                        pushOrder(payload.new);
+                    })
+                    .subscribe();
+            } catch (e) {
+                console.warn('Supabase live feed init failed:', e);
+            }
+        })();
+
+        /* ══════════════════════════════════════
+           TYPEWRITER TITLE — sound starts with first character
+        ══════════════════════════════════════ */
+        (function () {
+            const line1 = document.getElementById("tw-line1");
+            const line2 = document.getElementById("tw-line2");
+            const line3 = document.getElementById("tw-line3");
+            if (!line1 || !line2 || !line3) return;
+
+            const lines = [
+                [{ text: "AUTOMATED", cls: null }],
+                [{ text: "BEVERAGE", cls: "green" }],
+                [{ text: "VENDING MACHINE", cls: "blue" }]
+            ];
+            const lineEls = [line1, line2, line3];
+
+            let audioCtx = null;
+            function beep() {
+                try {
+                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = "square";
+                    osc.frequency.value = 920 + Math.random() * 140;
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    const now = audioCtx.currentTime;
+                    gain.gain.setValueAtTime(0.07, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
+                    osc.start(now); osc.stop(now + 0.05);
+                } catch (e) { }
+            }
+
+            const cursor = document.createElement("span");
+            cursor.className = "tw-cursor";
+            lineEls[0].appendChild(cursor);
+
+            let lineIdx = 0, segIdx = 0, charIdx = 0, currentSpan = null;
+
+            function step() {
+                if (lineIdx >= lines.length) {
+                    setTimeout(() => cursor.classList.add("tw-done"), 1400);
+                    return;
+                }
+                const segs = lines[lineIdx];
+                if (segIdx >= segs.length) {
+                    lineIdx++; segIdx = 0; charIdx = 0; currentSpan = null;
+                    if (lineIdx < lines.length) { lineEls[lineIdx].appendChild(cursor); setTimeout(step, 260); }
+                    else step();
+                    return;
+                }
+                const seg = segs[segIdx];
+                const lineEl = lineEls[lineIdx];
+                if (charIdx === 0) {
+                    if (seg.cls) { currentSpan = document.createElement("span"); currentSpan.className = seg.cls; lineEl.insertBefore(currentSpan, cursor); }
+                    else currentSpan = null;
+                }
+                const ch = seg.text[charIdx];
+                if (currentSpan) currentSpan.textContent += ch;
+                else lineEl.insertBefore(document.createTextNode(ch), cursor);
+                /* ── FIX: beep on every character, including the very first ── */
+                beep();
+                charIdx++;
+                if (charIdx >= seg.text.length) { segIdx++; charIdx = 0; }
+                const delay = ch === " " ? 90 : 55 + Math.random() * 55;
+                setTimeout(step, delay);
+            }
+
+            /* Start immediately — no waiting for user interaction */
+            setTimeout(step, 700);
+        })();
+    </script>
 </body>
+
 </html>
