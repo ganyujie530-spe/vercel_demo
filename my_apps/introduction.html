@@ -69,7 +69,6 @@
       opacity: .42;
     }
 
-    /* Animated scanning sweep for extra "wow" on projector */
     .slide::after {
       content: "";
       position: absolute;
@@ -341,7 +340,6 @@
       font-size: 19px;
     }
 
-    /* Pulsing glow accent for emphasis text on projector */
     .pulse {
       animation: pulseglow 2.4s ease-in-out infinite;
     }
@@ -362,25 +360,146 @@
       margin-bottom: 10px;
     }
 
-    .tw-cursor {
-      display: inline-block;
-      width: .5ch;
-      background: var(--nv);
-      box-shadow: 0 0 18px var(--nv);
-      animation: blink 0.85s step-end infinite;
-      vertical-align: -0.08em;
+    /* ══════════════════════════════════════
+       SLIDE 9 — LIVE INTERACTION (redesigned)
+    ══════════════════════════════════════ */
+
+    /* Layout: 3 columns */
+    .interface-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr 380px;
+      gap: 22px;
+      margin-top: 20px;
+      align-items: start;
     }
-    @keyframes blink { 50% { opacity: 0; } }
-    #typewriter-title .tw-done { animation: none; opacity: 0; }
+
+    /* ── Step flow ── */
+    .step-flow { display: flex; flex-direction: column; gap: 0; }
+    .step-node {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 12px 0 12px 22px;
+      border-left: 3px solid rgba(255,255,255,.08);
+      position: relative; transition: border-color .3s;
+    }
+    .step-node.lit { border-left-color: var(--accent, var(--nv)); }
+    .step-node::before {
+      content: ""; position: absolute; left: -8px; top: 16px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.2); transition: .3s;
+    }
+    .step-node.lit::before { background: var(--accent, var(--nv)); box-shadow: 0 0 14px var(--accent, var(--nv)); border-color: transparent; }
+    .step-node .sn-icon { font-size: 20px; line-height: 1; margin-top: 2px; flex-shrink: 0; }
+    .step-node .sn-body h3 { font-size: clamp(15px,1.3vw,19px); margin-bottom: 3px; color: var(--text); }
+    .step-node .sn-body p { font-size: clamp(12px,1vw,15px); color: var(--muted); line-height: 1.4; max-width: none; }
+
+    /* ── Live order feed ── */
+    .live-col { display: flex; flex-direction: column; gap: 10px; }
+    .live-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+    .live-header h3 { font-size: clamp(17px,1.5vw,22px); color: var(--text); }
+    .live-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--red); box-shadow: 0 0 12px var(--red); animation: blink2 1s steps(1) infinite; }
+    @keyframes blink2 { 50%{opacity:0} }
+    .live-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--red); padding: 4px 12px; border-radius: 999px; border: 1px solid var(--red); box-shadow: 0 0 16px rgba(239,68,68,.3); }
+
+    /* stats chips */
+    .stats-bar { display: flex; gap: 10px; }
+    .stat-chip { flex:1; padding: 12px 8px; border-radius: 12px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); text-align: center; }
+    .stat-chip strong { display:block; font: 900 26px/1 "Bahnschrift",sans-serif; color:var(--accent,var(--nv)); }
+    .stat-chip span { font-size: 11px; color: var(--muted); margin-top:4px; display:block; }
+
+    /* order cards */
+    .order-card {
+      padding: 14px 16px; border-radius: 14px;
+      background: rgba(118,185,0,.08); border: 1px solid rgba(118,185,0,.25);
+      animation: cardIn .5s cubic-bezier(.22,1,.36,1); position: relative; overflow: hidden;
+    }
+    .order-card::before { content:""; position:absolute; left:0;top:0;right:0;height:2px; background: linear-gradient(90deg,var(--nv),transparent); }
+    @keyframes cardIn { from{opacity:0;transform:translateX(-22px) scale(.97)} to{opacity:1;transform:none} }
+    .oc-top { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
+    .oc-emoji { font-size:24px; }
+    .oc-name { font-size:16px; font-weight:900; color:var(--nv); text-shadow:0 0 12px rgba(118,185,0,.6); }
+    .oc-drink { font-size:13px; color:var(--muted); }
+    .oc-tags { display:flex; flex-wrap:wrap; gap:5px; }
+    .oc-tag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; border:1px solid rgba(255,255,255,.12); color:#94a3b8; background:rgba(255,255,255,.05); }
+    .oc-time { font-size:10px; color:#475569; margin-top:5px; }
+
+    .empty-feed { padding:24px 18px; border-radius:14px; text-align:center; border:1.5px dashed rgba(255,255,255,.1); color:var(--muted); font-size:clamp(14px,1.2vw,17px); }
+
+    /* ── QR COLUMN ── */
+    .qr-col { display: flex; flex-direction: column; gap: 12px; }
+
+    /* The "WOW" QR widget — deliberately jarring/memorable */
+    .qr-widget {
+      position: relative; padding: 22px 18px 20px;
+      border-radius: 22px;
+      /* RED dashed border to stand out */
+      border: 2.5px dashed var(--red);
+      background: linear-gradient(145deg, rgba(239,68,68,.12), rgba(17,24,39,.97));
+      box-shadow: 0 0 48px rgba(239,68,68,.22), 0 30px 70px rgba(0,0,0,.7);
+      animation: qrFloat 4s ease-in-out infinite;
+      overflow: hidden;
+    }
+    @keyframes qrFloat { 0%,100%{transform:translateY(0) rotate(-.4deg)} 50%{transform:translateY(-7px) rotate(.4deg)} }
+    .qr-widget::before {
+      content:""; position:absolute; inset:0;
+      background:repeating-linear-gradient(45deg,rgba(239,68,68,.03),rgba(239,68,68,.03) 1px,transparent 1px,transparent 14px);
+      pointer-events:none;
+    }
+
+    /* Flashing LIVE badge */
+    .qr-live-badge {
+      display:inline-flex; align-items:center; gap:8px;
+      font:900 12px/1 "Bahnschrift",sans-serif; letter-spacing:.16em; text-transform:uppercase;
+      color:#fff; background:var(--red); padding:6px 14px; border-radius:999px;
+      box-shadow:0 0 22px var(--red); margin-bottom:12px;
+      animation:badgeFlash 1.4s steps(2,jump-none) infinite;
+    }
+    @keyframes badgeFlash { 0%,60%{opacity:1} 80%{opacity:.2} 100%{opacity:1} }
+    .qr-live-dot { width:8px;height:8px;border-radius:50%;background:#fff; animation:blink2 .8s steps(1) infinite; }
+
+    .qr-title { font-size:clamp(15px,1.3vw,19px); font-weight:900; color:var(--gold); margin-bottom:7px; }
+    .qr-desc  { font-size:clamp(12px,1vw,14px); color:var(--muted); line-height:1.5; margin-bottom:12px; }
+
+    .qr-img-wrap { display:flex; justify-content:center; }
+    .qr-img-wrap img {
+      width:150px; height:150px; border-radius:14px;
+      border:3px solid #fff; background:#fff;
+      box-shadow:0 0 32px rgba(239,68,68,.5), 0 16px 40px rgba(0,0,0,.65);
+      transition: transform .3s ease;
+    }
+    .qr-img-wrap img:hover { transform: scale(1.06); }
+    .qr-url { font-size:10px; color:#475569; text-align:center; margin-top:8px; word-break:break-all; }
+
+    /* Sensor mini panel */
+    .sensor-mini { padding:14px 16px; border-radius:16px; background:var(--panel); border:1px solid rgba(255,255,255,.1); }
+    .sensor-mini h3 { font-size:clamp(13px,1vw,16px); margin-bottom:9px; color:var(--nv); }
+    .sensor-row-mini { display:flex; gap:7px; }
+    .sensor-chip-mini { flex:1; padding:9px 5px; border-radius:10px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); text-align:center; }
+    .sensor-chip-mini .sl { font-size:10px; color:#64748b; }
+    .sensor-chip-mini .sv { display:block; font:900 14px/1 "Bahnschrift",sans-serif; color:var(--nv); margin-top:3px; }
+
+    /* ══════════════════════════════════════
+       ORIGINAL UNCHANGED STYLES
+    ══════════════════════════════════════ */
+    .live-panel { display:flex; flex-direction:column; }
+    .live-feed { margin-top:6px; max-height:260px; overflow:hidden; display:flex; flex-direction:column; gap:10px; }
+    .live-row { padding:12px 16px; border-radius:12px; background:rgba(168,85,247,.12); border:1px solid rgba(168,85,247,.35); font-size:clamp(18px,1.7vw,24px); color:var(--text); animation:liveIn .5s ease; display:flex; justify-content:space-between; gap:12px; }
+    .live-row .name { font-weight:800; color:var(--purple); text-shadow:0 0 12px var(--purple); }
+    .live-row .meta { color:var(--muted); font-size:.8em; text-align:right; }
+    .live-row.placeholder { color:var(--muted); border-style:dashed; background:rgba(255,255,255,.03); justify-content:flex-start; }
+    @keyframes liveIn { from{opacity:0;transform:translateX(-24px)} to{opacity:1;transform:translateX(0)} }
+
+    .tw-cursor { display:inline-block; width:.5ch; background:var(--nv); box-shadow:0 0 18px var(--nv); animation:blink .85s step-end infinite; vertical-align:-0.08em; }
+    @keyframes blink { 50%{opacity:0} }
+    #typewriter-title .tw-done { animation:none; opacity:0; }
 
     @media (max-width: 900px) {
       body { overflow: auto; }
       .deck { overflow-y: auto; }
-      .slide { min-height: 100vh; height: auto; padding: 64px 24px 96px; }
-      .grid, .grid.two, .grid.four, .grid.five, .grid.six, .flow, .flow.six { grid-template-columns: 1fr; }
-      .node::after { display: none; }
-      .footer { left: 24px; right: 24px; flex-direction: column; }
-      .dots { display: none; }
+      .slide { min-height:100vh; height:auto; padding:64px 24px 96px; }
+      .grid, .grid.two, .grid.four, .grid.five, .grid.six, .flow, .flow.six, .interface-layout { grid-template-columns:1fr; }
+      .node::after { display:none; }
+      .footer { left:24px; right:24px; flex-direction:column; }
+      .dots { display:none; }
     }
   </style>
 </head>
@@ -505,20 +624,93 @@
       <div class="footer"><span>Adelaine Tee · CST2604081 — Ingredient & Inventory Database</span><span>Sections 3.1 – 3.3 · Local DB ↔ Cloud Server</span></div>
     </section>
 
-    <!-- 9. INTERFACE -->
+    <!-- ══════════════════════════════════════════════════════════
+         9. INTERFACE — LIVE INTERACTION WITH SUPABASE REALTIME
+    ══════════════════════════════════════════════════════════ -->
     <section class="slide" data-title="Interface">
       <div class="kicker reveal-left">4. Step-by-Step Logic & Interface</div>
-      <h2 class="reveal-left d1">A touch UI turns a complex machine into <span class="purple pulse">simple customer steps</span>.</h2>
-      <p class="reveal d2">Direct interaction via tapping, swiping, pinching, spreading, and long-pressing — reducing confusion, speeding up ordering, and supporting remote monitoring, software updates, and digital advertising.</p>
-      <div class="flow six reveal d3">
-        <div class="node" style="--accent:var(--sky)"><h3>Select Drink</h3><p>Choose item from menu.</p></div>
-        <div class="node" style="--accent:var(--purple)"><h3>Customise</h3><p>Heat / ice, milk type, shots, toppings, syrup, drizzle, cream.</p></div>
-        <div class="node" style="--accent:var(--nv)"><h3>Check Stock</h3><p>Online recipe + local ingredient check.</p></div>
-        <div class="node" style="--accent:var(--gold)"><h3>Pay</h3><p>Timed payment; cancel if it fails.</p></div>
-        <div class="node" style="--accent:var(--nv)"><h3>Prepare</h3><p>Store transaction, begin preparing order.</p></div>
-        <div class="node" style="--accent:var(--sky)"><h3>Finish & Restock Check</h3><p>Verify ingredients for next order; request restock if low.</p></div>
+      <h2 class="reveal-left d1" style="font-size:clamp(30px,3.8vw,50px)">
+        Touch UI guides each step — <span class="purple pulse">see it happen live</span> right now.
+      </h2>
+
+      <div class="interface-layout">
+
+        <!-- COL 1: Step flow -->
+        <div class="step-flow reveal-left d2" id="stepFlow">
+          <div class="step-node" data-step="0" style="--accent:var(--sky)">
+            <div class="sn-icon">👆</div>
+            <div class="sn-body"><h3>Select Drink</h3><p>Choose item; system checks online DB for recipe and stock.</p></div>
+          </div>
+          <div class="step-node" data-step="1" style="--accent:var(--purple)">
+            <div class="sn-icon">🎛️</div>
+            <div class="sn-body"><h3>Customise</h3><p>Temp / milk / size / sugar — stepper + pump config set.</p></div>
+          </div>
+          <div class="step-node" data-step="2" style="--accent:var(--nv)">
+            <div class="sn-icon">🗄️</div>
+            <div class="sn-body"><h3>DB Stock Check</h3><p>Local database validates ingredients before payment.</p></div>
+          </div>
+          <div class="step-node" data-step="3" style="--accent:var(--gold)">
+            <div class="sn-icon">💳</div>
+            <div class="sn-body"><h3>TCP Payment</h3><p>Timed window; three-way handshake confirms transaction.</p></div>
+          </div>
+          <div class="step-node" data-step="4" style="--accent:var(--nv)">
+            <div class="sn-icon">⚙️</div>
+            <div class="sn-body"><h3>MCU Prepare</h3><p>Motors, pumps & heater fire in sequence; sensors close the loop.</p></div>
+          </div>
+          <div class="step-node" data-step="5" style="--accent:var(--sky)">
+            <div class="sn-icon">📡</div>
+            <div class="sn-body"><h3>Sync & Restock</h3><p>Stock updated in DB · POP issued · AI re-evaluates forecast.</p></div>
+          </div>
+        </div>
+
+        <!-- COL 2: Live order feed -->
+        <div class="live-col reveal d3">
+          <div class="live-header">
+            <h3>🖥️ Live Order Queue</h3>
+            <span class="live-badge"><div class="live-dot"></div> LIVE</span>
+          </div>
+
+          <div class="stats-bar">
+            <div class="stat-chip" style="--accent:var(--nv)"><strong id="statCount">0</strong><span>Orders</span></div>
+            <div class="stat-chip" style="--accent:var(--gold)"><strong id="statRevenue">RM0</strong><span>Revenue</span></div>
+            <div class="stat-chip" style="--accent:var(--purple)"><strong id="statTop">—</strong><span>Top Drink</span></div>
+          </div>
+
+          <div id="orderFeed">
+            <div class="empty-feed" id="emptyMsg">Waiting for first order… 📱 Scan the QR →</div>
+          </div>
+        </div>
+
+        <!-- COL 3: QR + Sensor -->
+        <div class="qr-col reveal-right d4">
+
+          <!-- QR WIDGET — deliberately stands out -->
+          <div class="qr-widget">
+            <div class="qr-live-badge"><div class="qr-live-dot"></div> ⚡ LIVE DEMO — SCAN NOW</div>
+            <div class="qr-title">📱 Try the Vending Machine!</div>
+            <div class="qr-desc">
+              Scan → select a drink → customise → pay. Your order pops up on this screen in <strong style="color:var(--sky)">real time</strong> via Supabase Realtime.
+            </div>
+            <div class="qr-img-wrap">
+              <img id="qrImg" alt="Scan to order" />
+            </div>
+            <div class="qr-url" id="qrUrlText"></div>
+          </div>
+
+          <!-- Sensor readings mini panel -->
+          <div class="sensor-mini">
+            <h3>🔬 MCU Sensor Readings</h3>
+            <div class="sensor-row-mini">
+              <div class="sensor-chip-mini"><span class="sl">Temp</span><span class="sv" id="liveTemp">92°C</span></div>
+              <div class="sensor-chip-mini"><span class="sl">Weight</span><span class="sv" id="liveWeight">0g</span></div>
+              <div class="sensor-chip-mini"><span class="sl">Pump</span><span class="sv" id="livePump">idle</span></div>
+            </div>
+          </div>
+
+        </div>
       </div>
-      <div class="footer"><span>Chikondi Banda · CST2604610 — Step-by-Step Logic & Interface</span><span>Figure 4 · UI & Beverage Preparation Logic Flow</span></div>
+
+      <div class="footer"><span>Chikondi Banda · CST2604610 — Step-by-Step Logic & Interface</span><span>Figure 4 · UI Logic Flow · Live Supabase Realtime Demo</span></div>
     </section>
 
     <!-- 10. JOURNEY / VERDICT -->
@@ -561,11 +753,21 @@
   </main>
 
   <script>
-    const deck = document.getElementById("deck");
-    const slides = [...document.querySelectorAll(".slide")];
+    /* ══════════════════════════════════════
+       CONFIG — fill in after Supabase setup
+    ══════════════════════════════════════ */
+    const ORDER_PAGE_URL    = 'https://vibe-coding-platform-mbjq.vercel.app/my_apps/order.html';
+    const SUPABASE_URL      = 'https://puzrvghgcyxzinxjzczn.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1enJ2Z2hnY3l4emlueGp6Y3puIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNTM1ODcsImV4cCI6MjA5NjkyOTU4N30.VvcTH2l12rAji3PCUBVyp1kpQWOrhtjwXI5BhAZdLc0';
+
+    /* ══════════════════════════════════════
+       SLIDE NAVIGATION
+    ══════════════════════════════════════ */
+    const deck    = document.getElementById("deck");
+    const slides  = [...document.querySelectorAll(".slide")];
     const counter = document.getElementById("counter");
-    const progress = document.getElementById("progress");
-    const dots = document.getElementById("dots");
+    const progress= document.getElementById("progress");
+    const dots    = document.getElementById("dots");
 
     slides.forEach((slide, i) => {
       const dot = document.createElement("button");
@@ -597,7 +799,126 @@
     });
     setActive();
 
-    /* ---- Typewriter title with typing sound ---- */
+    /* ══════════════════════════════════════
+       QR CODE
+    ══════════════════════════════════════ */
+    (function setupQR() {
+      const img = document.getElementById('qrImg');
+      const txt = document.getElementById('qrUrlText');
+      if (!img) return;
+      const isConfigured = !ORDER_PAGE_URL.includes('YOUR_');
+      const targetUrl = isConfigured ? ORDER_PAGE_URL : 'https://example.com';
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&bgcolor=ffffff&color=020205&data=${encodeURIComponent(targetUrl)}`;
+      if (txt) txt.textContent = isConfigured ? ORDER_PAGE_URL : '⚠ Set ORDER_PAGE_URL in the script';
+    })();
+
+    /* ══════════════════════════════════════
+       LIVE ORDER FEED
+    ══════════════════════════════════════ */
+    let allOrders = [];
+
+    function timeAgo(ts) {
+      if (!ts) return '';
+      const d = Math.floor((Date.now() - new Date(ts)) / 1000);
+      if (d < 5)  return 'just now';
+      if (d < 60) return `${d}s ago`;
+      return `${Math.floor(d / 60)}m ago`;
+    }
+
+    function renderOrderCard(o) {
+      const card = document.createElement('div');
+      card.className = 'order-card';
+      const tags = [o.temp, o.milk, o.size, o.sugar, o.payment].filter(Boolean);
+      card.innerHTML = `
+        <div class="oc-top">
+          <span class="oc-emoji">${o.emoji || '☕'}</span>
+          <div>
+            <div class="oc-name">${o.name}</div>
+            <div class="oc-drink">${o.drink}</div>
+          </div>
+          ${o.price ? `<div style="margin-left:auto;font:900 15px/1 'Bahnschrift',sans-serif;color:var(--gold);text-shadow:0 0 12px rgba(245,158,11,.5)">RM${Number(o.price).toFixed(2)}</div>` : ''}
+        </div>
+        <div class="oc-tags">${tags.map(t => `<span class="oc-tag">${t}</span>`).join('')}</div>
+        <div class="oc-time">${timeAgo(o.created_at)}</div>`;
+      return card;
+    }
+
+    function updateStats() {
+      document.getElementById('statCount').textContent = allOrders.length;
+      const rev = allOrders.reduce((s, o) => s + Number(o.price || 0), 0);
+      document.getElementById('statRevenue').textContent = 'RM' + rev.toFixed(0);
+      const tally = {};
+      allOrders.forEach(o => { tally[o.drink] = (tally[o.drink] || 0) + 1; });
+      const top = Object.entries(tally).sort((a, b) => b[1] - a[1])[0];
+      document.getElementById('statTop').textContent = top ? top[0].split(' ')[0] : '—';
+    }
+
+    function pushOrder(o) {
+      allOrders.unshift(o);
+      const feed  = document.getElementById('orderFeed');
+      const empty = document.getElementById('emptyMsg');
+      if (empty) empty.remove();
+      feed.prepend(renderOrderCard(o));
+      while (feed.children.length > 5) feed.removeChild(feed.lastChild);
+      updateStats();
+      animateStepFlow();
+    }
+
+    /* Animate step nodes on new order */
+    let stepAnimTimer = null;
+    function animateStepFlow() {
+      const nodes = document.querySelectorAll('.step-node');
+      let i = 0;
+      clearInterval(stepAnimTimer);
+      nodes.forEach(n => n.classList.remove('lit'));
+      stepAnimTimer = setInterval(() => {
+        if (i > 0) nodes[i - 1].classList.remove('lit');
+        if (i < nodes.length) { nodes[i].classList.add('lit'); i++; }
+        else clearInterval(stepAnimTimer);
+      }, 700);
+    }
+
+    /* Fake sensor flicker for the MCU panel */
+    (function sensorFlicker() {
+      const temps   = ['88°C','90°C','91°C','92°C','93°C'];
+      const weights = ['0g','48g','112g','198g','240g'];
+      const pumps   = ['idle','on','on','slow','stop'];
+      setInterval(() => {
+        const idx = Math.floor(Math.random() * temps.length);
+        const t = document.getElementById('liveTemp');
+        const w = document.getElementById('liveWeight');
+        const p = document.getElementById('livePump');
+        if (t) t.textContent = temps[idx];
+        if (w) w.textContent = weights[idx];
+        if (p) p.textContent = pumps[idx];
+      }, 2200);
+    })();
+
+    /* ── Supabase Realtime ── */
+    (async function initFeed() {
+      if (SUPABASE_URL.includes('YOUR_')) return;
+      try {
+        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Load last 5 existing orders
+        const { data } = await sb.from('orders').select('*').order('created_at', { ascending: false }).limit(5);
+        if (data && data.length) [...data].reverse().forEach(pushOrder);
+
+        // Subscribe to new inserts
+        sb.channel('orders-main')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+            pushOrder(payload.new);
+          })
+          .subscribe();
+      } catch (e) {
+        console.warn('Supabase live feed init failed:', e);
+      }
+    })();
+
+    /* ══════════════════════════════════════
+       TYPEWRITER TITLE
+    ══════════════════════════════════════ */
     (function () {
       const line1 = document.getElementById("tw-line1");
       const line2 = document.getElementById("tw-line2");
@@ -605,9 +926,9 @@
       if (!line1 || !line2 || !line3) return;
 
       const lines = [
-        [ { text: "AUTOMATED", cls: null } ],
-        [ { text: "BEVERAGE", cls: "green" } ],
-        [ { text: "VENDING MACHINE", cls: "blue" } ]
+        [{ text: "AUTOMATED", cls: null }],
+        [{ text: "BEVERAGE",  cls: "green" }],
+        [{ text: "VENDING MACHINE", cls: "blue" }]
       ];
       const lineEls = [line1, line2, line3];
 
@@ -615,7 +936,7 @@
       function beep() {
         try {
           if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc = audioCtx.createOscillator();
+          const osc  = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = "square";
           osc.frequency.value = 920 + Math.random() * 140;
@@ -624,75 +945,50 @@
           const now = audioCtx.currentTime;
           gain.gain.setValueAtTime(0.07, now);
           gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
-          osc.start(now);
-          osc.stop(now + 0.05);
-        } catch (e) { /* audio not available */ }
+          osc.start(now); osc.stop(now + 0.05);
+        } catch (e) {}
       }
 
       const cursor = document.createElement("span");
       cursor.className = "tw-cursor";
       lineEls[0].appendChild(cursor);
 
-      let lineIdx = 0, segIdx = 0, charIdx = 0;
-      let currentSpan = null;
+      let lineIdx = 0, segIdx = 0, charIdx = 0, currentSpan = null;
 
       function step() {
         if (lineIdx >= lines.length) {
-          setTimeout(() => { cursor.classList.add("tw-done"); }, 1400);
+          setTimeout(() => cursor.classList.add("tw-done"), 1400);
           return;
         }
         const segs = lines[lineIdx];
         if (segIdx >= segs.length) {
           lineIdx++; segIdx = 0; charIdx = 0; currentSpan = null;
-          if (lineIdx < lines.length) {
-            lineEls[lineIdx].appendChild(cursor);
-            setTimeout(step, 260); // small pause before next line
-          } else {
-            step();
-          }
+          if (lineIdx < lines.length) { lineEls[lineIdx].appendChild(cursor); setTimeout(step, 260); }
+          else step();
           return;
         }
-        const seg = segs[segIdx];
-        const lineEl = lineEls[lineIdx];
-
+        const seg   = segs[segIdx];
+        const lineEl= lineEls[lineIdx];
         if (charIdx === 0) {
-          if (seg.cls) {
-            currentSpan = document.createElement("span");
-            currentSpan.className = seg.cls;
-            lineEl.insertBefore(currentSpan, cursor);
-          } else {
-            currentSpan = null;
-          }
+          if (seg.cls) { currentSpan = document.createElement("span"); currentSpan.className = seg.cls; lineEl.insertBefore(currentSpan, cursor); }
+          else currentSpan = null;
         }
-
         const ch = seg.text[charIdx];
-        if (currentSpan) {
-          currentSpan.textContent += ch;
-        } else {
-          lineEl.insertBefore(document.createTextNode(ch), cursor);
-        }
-
+        if (currentSpan) currentSpan.textContent += ch;
+        else lineEl.insertBefore(document.createTextNode(ch), cursor);
         if (ch !== " ") beep();
-
         charIdx++;
-        if (charIdx >= seg.text.length) {
-          segIdx++; charIdx = 0;
-        }
-
+        if (charIdx >= seg.text.length) { segIdx++; charIdx = 0; }
         const delay = ch === " " ? 90 : 55 + Math.random() * 55;
         setTimeout(step, delay);
       }
 
       let started = false;
-      function tryStart() {
-        if (started) return;
-        started = true;
-        setTimeout(step, 700);
-      }
+      function tryStart() { if (started) return; started = true; setTimeout(step, 700); }
       if (slides[0].classList.contains("active")) tryStart();
       window.addEventListener("scroll", tryStart, { once: true });
       window.addEventListener("keydown", tryStart, { once: true });
-      window.addEventListener("click", tryStart, { once: true });
+      window.addEventListener("click",   tryStart, { once: true });
     })();
   </script>
 </body>
