@@ -1158,20 +1158,25 @@
         .blueprint-container {
             position: relative;
             z-index: 2001;
-            max-width: 90vw;
-            max-height: 90vh;
+
+            width: 98vw;
+            height: 98vh;
+
             border: 1px solid var(--sky);
             box-shadow: 0 0 40px rgba(56, 189, 248, 0.3);
             border-radius: 12px;
             overflow: hidden;
             background: rgba(0, 0, 0, 0.5);
+
             transform: scale(0.95);
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 40px;
-        }
+
+            padding: 10px;
+}
 
         .blueprint-modal.active .blueprint-container {
             transform: scale(1);
@@ -1200,14 +1205,19 @@
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
         }
 
-        .blueprint-img {
-            max-width: 100%;
-            max-height: 80vh;
-            display: block;
-            object-fit: contain;
-            /* The Magic Filter for bright white/colored diagrams */
-            filter: invert(1) hue-rotate(180deg) brightness(1.2) contrast(1.1) drop-shadow(0 0 10px rgba(56, 189, 248, 0.3));
-        }
+      .blueprint-img {
+        width: 100%;
+        height: 100%;
+
+        display: block;
+        object-fit: contain;
+
+        filter: invert(1)
+                hue-rotate(180deg)
+                brightness(1.2)
+                contrast(1.1)
+                drop-shadow(0 0 10px rgba(56, 189, 248, 0.3));
+    }
 
         .blueprint-scanline {
             position: absolute;
