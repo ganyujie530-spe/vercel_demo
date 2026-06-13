@@ -14,9 +14,9 @@
       --gold: #f59e0b;
       --red: #ef4444;
       --bg: #020205;
-      --panel: rgba(17, 24, 39, 0.86);
-      --text: #e2e8f0;
-      --muted: #94a3b8;
+      --panel: rgba(17, 24, 39, 0.88);
+      --text: #f1f5f9;
+      --muted: #c2cad6;
     }
 
     * { box-sizing: border-box; }
@@ -34,24 +34,29 @@
       overflow-y: auto;
       scroll-snap-type: y mandatory;
       background:
-        linear-gradient(90deg, rgba(118,185,0,.06) 1px, transparent 1px) 0 0 / 104px 104px,
-        linear-gradient(0deg, rgba(56,189,248,.06) 1px, transparent 1px) 0 0 / 92px 92px,
-        radial-gradient(circle at 80% 15%, rgba(118,185,0,.17), transparent 30%),
-        radial-gradient(circle at 18% 82%, rgba(0,113,197,.22), transparent 32%),
+        linear-gradient(90deg, rgba(118,185,0,.08) 1px, transparent 1px) 0 0 / 104px 104px,
+        linear-gradient(0deg, rgba(56,189,248,.08) 1px, transparent 1px) 0 0 / 92px 92px,
+        radial-gradient(circle at 80% 15%, rgba(118,185,0,.22), transparent 30%),
+        radial-gradient(circle at 18% 82%, rgba(0,113,197,.28), transparent 32%),
         #020205;
+      animation: gridDrift 38s linear infinite;
+    }
+    @keyframes gridDrift {
+      0%   { background-position: 0 0, 0 0, 80% 15%, 18% 82%, 0 0; }
+      100% { background-position: 104px 104px, -92px 92px, 80% 15%, 18% 82%, 0 0; }
     }
 
     .slide {
       position: relative;
       height: 100vh;
       width: 100vw;
-      padding: 6.8vh 6.2vw;
+      padding: 6.2vh 6vw;
       scroll-snap-align: start;
       overflow: hidden;
       display: grid;
       align-content: center;
-      border-top: 4px solid var(--nv);
-      border-bottom: 4px solid var(--intel);
+      border-top: 5px solid var(--nv);
+      border-bottom: 5px solid var(--intel);
     }
 
     .slide::before {
@@ -59,27 +64,51 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      background: repeating-linear-gradient(0deg, rgba(255,255,255,.025), rgba(255,255,255,.025) 1px, transparent 1px, transparent 5px);
+      background: repeating-linear-gradient(0deg, rgba(255,255,255,.03), rgba(255,255,255,.03) 1px, transparent 1px, transparent 5px);
       mix-blend-mode: screen;
       opacity: .42;
+    }
+
+    /* Animated scanning sweep for extra "wow" on projector */
+    .slide::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -40%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(100deg, transparent, rgba(118,185,0,.10) 45%, rgba(56,189,248,.14) 55%, transparent);
+      pointer-events: none;
+      transform: skewX(-12deg);
+      opacity: 0;
+    }
+    .slide.active::after {
+      animation: sweep 2.6s ease-out 1;
+    }
+    @keyframes sweep {
+      0% { opacity: 0; left: -40%; }
+      15% { opacity: 1; }
+      60% { opacity: .7; }
+      100% { opacity: 0; left: 120%; }
     }
 
     .kicker {
       display: flex;
       align-items: center;
-      gap: 16px;
-      font: 800 14px/1 "Bahnschrift", "Segoe UI", sans-serif;
-      letter-spacing: .18em;
+      gap: 18px;
+      font: 900 18px/1 "Bahnschrift", "Segoe UI", sans-serif;
+      letter-spacing: .22em;
       color: var(--nv);
       text-transform: uppercase;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
+      text-shadow: 0 0 18px rgba(118,185,0,.7);
     }
     .kicker::before {
       content: "";
-      width: 34px;
-      height: 4px;
+      width: 44px;
+      height: 6px;
       background: currentColor;
-      box-shadow: 0 0 18px currentColor;
+      box-shadow: 0 0 24px currentColor;
     }
 
     h1, h2, h3 {
@@ -88,50 +117,58 @@
       letter-spacing: 0;
     }
     h1 {
-      font-size: clamp(56px, 7vw, 92px);
+      font-size: clamp(64px, 8.4vw, 112px);
       line-height: .98;
-      max-width: 980px;
+      max-width: 1100px;
       text-transform: uppercase;
     }
     h2 {
-      font-size: clamp(34px, 4.4vw, 56px);
-      line-height: 1.05;
-      max-width: 1040px;
+      font-size: clamp(42px, 5.6vw, 70px);
+      line-height: 1.06;
+      max-width: 1180px;
     }
-    h3 { font-size: 28px; }
+    h3 { font-size: clamp(28px, 2.6vw, 36px); }
     p {
-      font-size: clamp(22px, 2.1vw, 30px);
-      line-height: 1.35;
+      font-size: clamp(26px, 2.6vw, 36px);
+      line-height: 1.38;
       color: var(--text);
-      max-width: 940px;
+      max-width: 1100px;
     }
 
-    .green { color: var(--nv); text-shadow: 0 0 24px rgba(118,185,0,.56); }
-    .blue { color: var(--sky); text-shadow: 0 0 24px rgba(56,189,248,.48); }
-    .purple { color: var(--purple); text-shadow: 0 0 24px rgba(168,85,247,.42); }
-    .gold { color: var(--gold); text-shadow: 0 0 24px rgba(245,158,11,.42); }
+    .green { color: var(--nv); text-shadow: 0 0 28px rgba(118,185,0,.7); }
+    .blue { color: var(--sky); text-shadow: 0 0 28px rgba(56,189,248,.6); }
+    .purple { color: var(--purple); text-shadow: 0 0 28px rgba(168,85,247,.55); }
+    .gold { color: var(--gold); text-shadow: 0 0 28px rgba(245,158,11,.55); }
+    .red { color: var(--red); text-shadow: 0 0 28px rgba(239,68,68,.55); }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 24px;
-      margin-top: 44px;
+      gap: 28px;
+      margin-top: 48px;
     }
     .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .grid.six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 
     .panel {
       position: relative;
-      min-height: 150px;
-      padding: 28px;
+      min-height: 170px;
+      padding: 32px;
       background: var(--panel);
-      border: 1px solid rgba(255,255,255,.14);
-      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 24px;
       box-shadow:
-        0 28px 70px rgba(0,0,0,.68),
-        inset 0 1px 0 rgba(255,255,255,.12);
+        0 30px 80px rgba(0,0,0,.7),
+        inset 0 1px 0 rgba(255,255,255,.14);
       backdrop-filter: blur(22px);
       overflow: hidden;
+      transition: transform .4s ease, box-shadow .4s ease;
+    }
+    .panel:hover {
+      transform: translateY(-6px) scale(1.015);
+      box-shadow: 0 36px 90px rgba(0,0,0,.8), 0 0 40px var(--accent, var(--nv));
     }
     .panel::before {
       content: "";
@@ -139,115 +176,131 @@
       left: 0;
       top: 0;
       right: 0;
-      height: 5px;
-      background: var(--accent, var(--nv));
-      box-shadow: 0 0 22px var(--accent, var(--nv));
+      height: 6px;
+      background: linear-gradient(90deg, var(--accent, var(--nv)), rgba(255,255,255,.9), var(--accent, var(--nv)));
+      background-size: 220% 100%;
+      box-shadow: 0 0 26px var(--accent, var(--nv));
+      animation: shimmer 4.5s linear infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 0% 0; }
+      100% { background-position: -220% 0; }
     }
     .panel h3 {
       color: var(--text);
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
     .panel p, .panel li {
-      font-size: clamp(18px, 1.55vw, 24px);
-      line-height: 1.34;
+      font-size: clamp(20px, 1.9vw, 27px);
+      line-height: 1.42;
       color: var(--muted);
     }
-    .panel ul { padding-left: 22px; margin: 0; }
+    .panel ul { padding-left: 26px; margin: 0; }
+    .panel li { margin-bottom: 8px; }
 
     .flow {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 32px;
+      gap: 36px;
       align-items: center;
-      margin-top: 48px;
+      margin-top: 52px;
     }
-    .flow.six { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; }
+    .flow.six { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; }
     .node {
-      min-height: 132px;
-      padding: 24px 20px;
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,.15);
-      background: rgba(11,16,24,.88);
-      box-shadow: 0 0 0 1px rgba(255,255,255,.03), 0 18px 42px rgba(0,0,0,.48);
+      min-height: 156px;
+      padding: 28px 22px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(11,16,24,.9);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.04), 0 20px 50px rgba(0,0,0,.55);
       position: relative;
+      transition: transform .4s ease;
     }
+    .node:hover { transform: translateY(-5px); }
     .node::after {
       content: "";
       position: absolute;
-      right: -30px;
+      right: -34px;
       top: 50%;
-      width: 28px;
-      height: 4px;
+      width: 32px;
+      height: 5px;
       background: var(--accent, var(--nv));
-      box-shadow: 0 0 14px var(--accent, var(--nv));
+      box-shadow: 0 0 18px var(--accent, var(--nv));
+      animation: nodeFlow 1.8s ease-in-out infinite;
+    }
+    @keyframes nodeFlow {
+      0%, 100% { box-shadow: 0 0 10px var(--accent, var(--nv)); opacity: .6; }
+      50% { box-shadow: 0 0 24px var(--accent, var(--nv)), 0 0 40px var(--accent, var(--nv)); opacity: 1; }
     }
     .node:last-child::after { display: none; }
-    .node h3 { font-size: 24px; color: var(--accent, var(--nv)); }
-    .node p { font-size: 18px; margin: 10px 0 0; color: var(--muted); }
+    .node h3 { font-size: clamp(24px, 2.2vw, 30px); color: var(--accent, var(--nv)); }
+    .node p { font-size: clamp(18px, 1.6vw, 23px); margin: 12px 0 0; color: var(--muted); }
 
     .footer {
       position: absolute;
-      left: 6.2vw;
-      right: 6.2vw;
-      bottom: 22px;
+      left: 6vw;
+      right: 6vw;
+      bottom: 26px;
       display: flex;
       justify-content: space-between;
       gap: 24px;
-      font-size: 12px;
-      color: rgba(148,163,184,.62);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      color: rgba(226,232,240,.78);
     }
     .counter {
       position: fixed;
-      bottom: 24px;
+      bottom: 26px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 50;
-      font: 700 12px/1 "Bahnschrift", sans-serif;
-      letter-spacing: .28em;
-      color: rgba(255,255,255,.36);
+      font: 800 14px/1 "Bahnschrift", sans-serif;
+      letter-spacing: .3em;
+      color: rgba(255,255,255,.5);
     }
     .progress {
       position: fixed;
       top: 0;
       left: 0;
       z-index: 60;
-      height: 3px;
+      height: 5px;
       width: 0;
       background: linear-gradient(90deg, var(--nv), var(--sky));
-      box-shadow: 0 0 16px var(--nv);
+      box-shadow: 0 0 22px var(--nv);
     }
     .dots {
       position: fixed;
-      right: 24px;
+      right: 26px;
       top: 50%;
       transform: translateY(-50%);
       z-index: 55;
       display: grid;
-      gap: 10px;
+      gap: 13px;
     }
     .dot {
-      width: 9px;
-      height: 9px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.25);
-      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.2);
       cursor: pointer;
       transition: .25s ease;
     }
     .dot.active {
       background: var(--nv);
-      box-shadow: 0 0 14px var(--nv);
-      transform: scale(1.4);
+      box-shadow: 0 0 18px var(--nv);
+      transform: scale(1.5);
     }
 
     .reveal, .reveal-left, .reveal-right, .reveal-scale {
       opacity: 0;
-      transition: opacity .9s ease, transform .9s cubic-bezier(.22,1,.36,1);
+      transition: opacity 1s ease, transform 1s cubic-bezier(.22,1,.36,1);
     }
-    .reveal { transform: translateY(56px); }
-    .reveal-left { transform: translateX(-70px); }
-    .reveal-right { transform: translateX(70px); }
-    .reveal-scale { transform: scale(.84); }
+    .reveal { transform: translateY(70px); }
+    .reveal-left { transform: translateX(-90px); }
+    .reveal-right { transform: translateX(90px); }
+    .reveal-scale { transform: scale(.78); }
     .active .reveal,
     .active .reveal-left,
     .active .reveal-right,
@@ -255,44 +308,76 @@
       opacity: 1;
       transform: translate(0,0) scale(1);
     }
-    .d1 { transition-delay: .12s; }
-    .d2 { transition-delay: .25s; }
-    .d3 { transition-delay: .38s; }
-    .d4 { transition-delay: .52s; }
-    .d5 { transition-delay: .66s; }
-    .d6 { transition-delay: .8s; }
+    .d1 { transition-delay: .1s; }
+    .d2 { transition-delay: .22s; }
+    .d3 { transition-delay: .34s; }
+    .d4 { transition-delay: .46s; }
+    .d5 { transition-delay: .58s; }
+    .d6 { transition-delay: .7s; }
 
     .metric-rail {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-top: 42px;
-      max-width: 880px;
+      gap: 24px;
+      margin-top: 48px;
+      max-width: 1040px;
     }
     .metric {
-      padding: 22px;
-      border-radius: 20px;
-      background: rgba(255,255,255,.055);
-      border: 1px solid rgba(255,255,255,.12);
+      padding: 26px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.16);
     }
     .metric strong {
       display: block;
-      font: 900 30px/1 "Bahnschrift", sans-serif;
+      font: 900 38px/1 "Bahnschrift", sans-serif;
       color: var(--accent, var(--nv));
-      text-shadow: 0 0 18px var(--accent, var(--nv));
+      text-shadow: 0 0 22px var(--accent, var(--nv));
     }
     .metric span {
       display: block;
-      margin-top: 10px;
+      margin-top: 12px;
       color: var(--muted);
-      font-size: 16px;
+      font-size: 19px;
     }
+
+    /* Pulsing glow accent for emphasis text on projector */
+    .pulse {
+      animation: pulseglow 2.4s ease-in-out infinite;
+    }
+    @keyframes pulseglow {
+      0%, 100% { text-shadow: 0 0 18px currentColor; }
+      50% { text-shadow: 0 0 42px currentColor, 0 0 70px currentColor; }
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      border: 1px solid currentColor;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+
+    .tw-cursor {
+      display: inline-block;
+      width: .5ch;
+      background: var(--nv);
+      box-shadow: 0 0 18px var(--nv);
+      animation: blink 0.85s step-end infinite;
+      vertical-align: -0.08em;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    #typewriter-title .tw-done { animation: none; opacity: 0; }
 
     @media (max-width: 900px) {
       body { overflow: auto; }
       .deck { overflow-y: auto; }
-      .slide { min-height: 100vh; height: auto; padding: 56px 24px 88px; }
-      .grid, .grid.two, .grid.four, .flow, .flow.six { grid-template-columns: 1fr; }
+      .slide { min-height: 100vh; height: auto; padding: 64px 24px 96px; }
+      .grid, .grid.two, .grid.four, .grid.five, .grid.six, .flow, .flow.six { grid-template-columns: 1fr; }
       .node::after { display: none; }
       .footer { left: 24px; right: 24px; flex-direction: column; }
       .dots { display: none; }
@@ -302,141 +387,177 @@
 <body>
   <div class="progress" id="progress"></div>
   <div class="dots" id="dots"></div>
-  <div class="counter" id="counter">01 / 10</div>
+  <div class="counter" id="counter">01 / 11</div>
 
   <main class="deck" id="deck">
+
+    <!-- 1. COVER -->
     <section class="slide active" data-title="Cover">
-      <div class="kicker reveal-left">CST104 Team 8</div>
-      <h1 class="reveal-left d1">Automated <span class="green">Beverage</span><br><span class="blue">Vending Machine</span></h1>
-      <p class="reveal d2">A full-system walkthrough of hardware control, AI operations, network protocols, database logic, and touch interface design.</p>
+      <div class="kicker reveal-left">CST104 · Team 8 · Assignment</div>
+      <h1 class="reveal-left d1" id="typewriter-title"><span class="tw-line" id="tw-line1"></span><br><span class="tw-line" id="tw-line2"></span><br><span class="tw-line" id="tw-line3"></span></h1>
+      <p class="reveal d2">A full-system walkthrough of hardware control, AI-driven operations, network protocols, database logic, and the touch interface — one closed digital loop.</p>
       <div class="metric-rail reveal-scale d3">
-        <div class="metric" style="--accent:var(--nv)"><strong>CPU + MCU</strong><span>High-level logic plus real-time control</span></div>
-        <div class="metric" style="--accent:var(--sky)"><strong>2 AI Engines</strong><span>Inventory forecasting and predictive maintenance</span></div>
-        <div class="metric" style="--accent:var(--purple)"><strong>4 Modules</strong><span>Hardware, network, database, interface</span></div>
+        <div class="metric" style="--accent:var(--nv)"><strong>CPU + MCU</strong><span>Main brain + real-time control core</span></div>
+        <div class="metric" style="--accent:var(--sky)"><strong>2 AI Engines</strong><span>Inventory forecasting & predictive maintenance</span></div>
+        <div class="metric" style="--accent:var(--purple)"><strong>4 Modules</strong><span>Hardware · Network · Database · Interface</span></div>
       </div>
-      <div class="footer"><span>Team 8 | CST104 Introduction to Computer Science and Technology</span><span>Du Weichen | Gan Yujie | Adelaine Tee | Chikondi Banda | Wallace Chan</span></div>
+      <div class="footer"><span>Team 8 | CST104 Introduction to Computer Science and Technology</span><span>Du Weichen · Gan Yujie · Adelaine Tee · Chikondi Banda · Wallace Chan</span></div>
     </section>
 
+    <!-- 2. SYSTEM MAP -->
     <section class="slide" data-title="System Map">
       <div class="kicker reveal-left">System Map</div>
-      <h2 class="reveal-left d1">The machine works as one <span class="green">closed digital loop</span>.</h2>
+      <h2 class="reveal-left d1">The machine works as one <span class="green pulse">closed digital loop</span>.</h2>
       <div class="flow reveal d2">
-        <div class="node" style="--accent:var(--sky)"><h3>Touch UI</h3><p>Customer selects and customizes the drink.</p></div>
+        <div class="node" style="--accent:var(--sky)"><h3>Touch UI</h3><p>Customer selects and customises the drink.</p></div>
         <div class="node" style="--accent:var(--nv)"><h3>Database</h3><p>Checks recipe, stock, and transaction records.</p></div>
         <div class="node" style="--accent:var(--gold)"><h3>Payment</h3><p>TCP protects transaction confirmation.</p></div>
         <div class="node" style="--accent:var(--purple)"><h3>CPU + MCU</h3><p>Coordinates logic, sensors, motors, and AI.</p></div>
       </div>
-      <p class="reveal d4">Every order updates stock, guides mechanical control, and feeds cloud monitoring.</p>
-      <div class="footer"><span>Team 8 | System integration</span><span>Slide footer includes presenters as required</span></div>
+      <p class="reveal d4">Every order updates stock, drives mechanical control, and feeds cloud monitoring — front end, hardware, and backend all move together.</p>
+      <div class="footer"><span>Team 8 | System integration overview</span><span>CST104 · Assignment Report</span></div>
     </section>
 
+    <!-- 3. HARDWARE -->
     <section class="slide" data-title="Hardware">
-      <div class="kicker reveal-left">Hardware Control</div>
+      <div class="kicker reveal-left">1. Hardware Control</div>
       <h2 class="reveal-left d1">CPU plans the drink; <span class="blue">MCU makes the machine respond instantly</span>.</h2>
       <div class="grid reveal d2">
-        <div class="panel" style="--accent:var(--nv)"><h3>CPU</h3><p>Main brain for UI display, online payments, and AI algorithm interface.</p></div>
-        <div class="panel" style="--accent:var(--sky)"><h3>MCU</h3><p>Small brain for fast sensor readings, pump switches, heater logic, and motor control.</p></div>
-        <div class="panel" style="--accent:var(--purple)"><h3>RAM</h3><p>Temporary working space so machine information appears smoothly without freezing.</p></div>
+        <div class="panel" style="--accent:var(--nv)"><h3>CPU — Main Brain</h3><p>High-level operations: UI display, internet payments, and the interface that runs the AI algorithms.</p></div>
+        <div class="panel" style="--accent:var(--sky)"><h3>MCU — Small Brain</h3><p>Fast, precise execution: connects sensors and motors, controls pump switches, and reads temperature.</p></div>
+        <div class="panel" style="--accent:var(--purple)"><h3>RAM — Working Memory</h3><p>Temporary draft space so the machine presents information smoothly without getting stuck.</p></div>
       </div>
       <div class="grid four reveal d4">
-        <div class="panel" style="--accent:var(--nv)"><p>Grinding motor controls bean amount by timing.</p></div>
-        <div class="panel" style="--accent:var(--sky)"><p>Peristaltic pumps move water, milk, and syrup accurately.</p></div>
-        <div class="panel" style="--accent:var(--purple)"><p>Stepper motor releases one cup and positions it safely.</p></div>
-        <div class="panel" style="--accent:var(--gold)"><p>Temperature and load-cell feedback keep drinks consistent.</p></div>
+        <div class="panel" style="--accent:var(--nv)"><p><strong class="green">Grinding Motor</strong><br>DC motor; MCU controls run time via relay to grind the correct bean amount per order.</p></div>
+        <div class="panel" style="--accent:var(--sky)"><p><strong class="blue">Peristaltic Pumps</strong><br>Move water, milk & syrup accurately; liquid only touches the tube, improving hygiene.</p></div>
+        <div class="panel" style="--accent:var(--purple)"><p><strong class="purple">Stepper Motor</strong><br>Releases one paper cup at a time and positions it precisely and safely.</p></div>
+        <div class="panel" style="--accent:var(--gold)"><p><strong class="gold">Temperature & Load Cells</strong><br>Feedback keeps brewing heat and pour weight consistent every time.</p></div>
       </div>
-      <div class="footer"><span>Gan Yujie MBT2509003 | Du Weichen MEC2509004</span><span>Hardware Control & AI Selection</span></div>
+      <div class="footer"><span>Gan Yujie · MBT2509003 — Hardware Control</span><span>Part 1.1 – 1.2 · Central Units & Mechanical Components</span></div>
     </section>
 
+    <!-- 4. SENSORS / ARCHITECTURE -->
+    <section class="slide" data-title="Sensors">
+      <div class="kicker reveal-left">1.3 – 1.4 Sensors & Architecture</div>
+      <h2 class="reveal-left d1">Sensors are the <span class="gold pulse">monitoring nervous system</span> of the machine.</h2>
+      <div class="grid two reveal d2">
+        <div class="panel" style="--accent:var(--red)"><h3>Temperature Sensor</h3><p>Checks water heating tank; MCU only allows hot water into brewing once ~92°C is reached, matching optimal extraction standards.</p></div>
+        <div class="panel" style="--accent:var(--sky)"><h3>Weight Sensor (Load Cell)</h3><p>Under the cup platform — stops pumps automatically at the correct pour weight, reducing overflow and improving consistency.</p></div>
+      </div>
+      <div class="grid two reveal d4">
+        <div class="panel" style="--accent:var(--nv)"><h3>Raw Material Tank Load Cell</h3><p>Measures remaining stock of beans/powder; data feeds the inventory-forecasting AI on the CPU.</p></div>
+        <div class="panel" style="--accent:var(--purple)"><h3>Water Pump Vibration Sensor</h3><p>Monitors abnormal shaking; unusual patterns are reported to the predictive-maintenance AI for early warning.</p></div>
+      </div>
+      <div class="footer"><span>Gan Yujie · MBT2509003 — Hardware Control</span><span>System Architecture Diagram (Fig. 1): closed-loop sensor feedback</span></div>
+    </section>
+
+    <!-- 5. AI -->
     <section class="slide" data-title="AI">
-      <div class="kicker reveal-left">AI Selection</div>
-      <h2 class="reveal-left d1">The AI value is backstage: <span class="green">fewer stockouts</span> and <span class="blue">earlier repairs</span>.</h2>
+      <div class="kicker reveal-left">1.5 AI Selection</div>
+      <h2 class="reveal-left d1">The AI value is backstage: <span class="green pulse">fewer stockouts</span> and <span class="blue pulse">earlier repairs</span>.</h2>
       <div class="grid two">
-        <div class="panel reveal-left d2" style="--accent:var(--nv)"><h3>Inventory Forecasting</h3><p>Load cells track remaining raw materials. AI predicts consumption rate and sends a restock notice before ingredients run out.</p></div>
-        <div class="panel reveal-right d3" style="--accent:var(--sky)"><h3>Predictive Maintenance</h3><p>Vibration and current signals help detect abnormal pump behavior before complete mechanical failure.</p></div>
+        <div class="panel reveal-left d2" style="--accent:var(--nv)"><h3>Inventory Forecasting</h3><p>Load cells track remaining raw materials. The CPU uses AI-based demand forecasting to predict consumption rates and trigger restock notices before ingredients run out.</p></div>
+        <div class="panel reveal-right d3" style="--accent:var(--sky)"><h3>Predictive Maintenance</h3><p>Vibration and current signals reveal abnormal pump behaviour — blockages and wear — before complete mechanical failure occurs.</p></div>
       </div>
       <div class="grid two reveal d5">
-        <div class="panel" style="--accent:var(--gold)"><p>If bubbles are predicted to run out within two hours, the system can update the UI and remove affected drinks from the menu.</p></div>
-        <div class="panel" style="--accent:var(--red)"><p>If the pump is likely to fail within 48 hours, the system can reduce operating frequency and send a replacement reminder.</p></div>
+        <div class="panel" style="--accent:var(--gold)"><p><strong class="gold">Stock Example:</strong> if bubbles are predicted to run out within 2 hours, the system updates the UI and removes affected drinks from the menu, syncing the inventory database instantly.</p></div>
+        <div class="panel" style="--accent:var(--red)"><p><strong class="red">Maintenance Example:</strong> if a pump is likely to fail within 48 hours, the system reduces its operating frequency and sends a replacement reminder automatically.</p></div>
       </div>
-      <div class="footer"><span>Du Weichen MEC2509004</span><span>AI Selection</span></div>
+      <div class="footer"><span>Du Weichen · MEC2509004 — AI Selection</span><span>Part 1.5 · Predictive Inventory & Maintenance System</span></div>
     </section>
 
+    <!-- 6. PROTOCOLS -->
     <section class="slide" data-title="Protocols">
-      <div class="kicker reveal-left">Transport Protocols</div>
-      <h2 class="reveal-left d1"><span class="green">TCP protects payments</span>; <span class="blue">UDP keeps screen media smooth</span>.</h2>
+      <div class="kicker reveal-left">2.1 – 2.2 Transport Protocols</div>
+      <h2 class="reveal-left d1"><span class="green pulse">TCP protects payments</span>; <span class="blue pulse">UDP keeps screen media smooth</span>.</h2>
       <div class="grid two">
-        <div class="panel reveal-left d2" style="--accent:var(--nv)"><h3>TCP</h3><p>Best for credit card and e-wallet payment data because accuracy, ordering, ACK packets, and retransmission matter more than speed.</p></div>
-        <div class="panel reveal-right d3" style="--accent:var(--sky)"><h3>UDP</h3><p>Best for live video advertisements because low latency and continuity matter more than perfect frame delivery.</p></div>
+        <div class="panel reveal-left d2" style="--accent:var(--nv)"><h3>TCP — Connection-Oriented</h3><p>Three-way handshake, ACK packets, and retransmission guarantee accuracy and order. Best for credit card / e-wallet payment data, where Deduction → Settled must occur in strict chronological order.</p></div>
+        <div class="panel reveal-right d3" style="--accent:var(--sky)"><h3>UDP — Connectionless</h3><p>No handshake, smaller headers, zero ACK overhead — very fast, low latency. Best for live video advertisements: a lost frame causes a tiny imperfection, not a freeze.</p></div>
       </div>
-      <p class="reveal d4">The system is not a single-protocol design. It chooses the protocol based on the risk and timing need of each data type.</p>
-      <div class="footer"><span>Wallace Chan CST2604087</span><span>Data Transmission & Protocols</span></div>
+      <p class="reveal d4">The system is <span class="gold pulse">not single-protocol</span>. It chooses TCP or UDP based on the risk and timing needs of each data type — a hybrid scheme by design.</p>
+      <div class="footer"><span>Wallace Chan · CST2604087 — Data Transmission & Protocols</span><span>Table 1 · TCP vs UDP (adapted from Gorman, 2023, Avast)</span></div>
     </section>
 
+    <!-- 7. NETWORK FLOW -->
     <section class="slide" data-title="Network">
-      <div class="kicker reveal-left">Network Flow</div>
-      <h2 class="reveal-left d1">Different data streams share the cloud, but use <span class="gold">different routes</span>.</h2>
+      <div class="kicker reveal-left">2.3 Network Flow Map</div>
+      <h2 class="reveal-left d1">Different data streams share the cloud, but use <span class="gold pulse">different routes</span>.</h2>
       <div class="flow reveal d2">
-        <div class="node" style="--accent:var(--nv)"><h3>Machine</h3><p>Orders, payment signals, sales data, media.</p></div>
-        <div class="node" style="--accent:var(--gold)"><h3>TCP Route</h3><p>Payment gateway and database transactions.</p></div>
-        <div class="node" style="--accent:var(--sky)"><h3>UDP Route</h3><p>Live advertisement media streaming.</p></div>
-        <div class="node" style="--accent:var(--purple)"><h3>Cloud</h3><p>Sales, stock status, machine health, updates.</p></div>
+        <div class="node" style="--accent:var(--nv)"><h3>Vending Machine</h3><p>Payment terminal & LCD advertising screen generate the data.</p></div>
+        <div class="node" style="--accent:var(--gold)"><h3>TCP Route</h3><p>Financial transaction data stream → Transaction & DB Server.</p></div>
+        <div class="node" style="--accent:var(--sky)"><h3>UDP Route</h3><p>Real-time video streaming → Media Streaming Server.</p></div>
+        <div class="node" style="--accent:var(--purple)"><h3>Cloud Server</h3><p>Receives sales, stock status, machine health & ad media.</p></div>
       </div>
-      <div class="footer"><span>Wallace Chan CST2604087</span><span>Network Flow Map</span></div>
+      <p class="reveal d4">Figure 2: the end-to-end transmission path — TCP for financial and database transactions, UDP for media streaming — running simultaneously through the cloud backend.</p>
+      <div class="footer"><span>Wallace Chan · CST2604087 — Data Transmission & Protocols</span><span>Figure 2 · Network Flow Map</span></div>
     </section>
 
+    <!-- 8. DATABASE -->
     <section class="slide" data-title="Database">
-      <div class="kicker reveal-left">Database Logic</div>
-      <h2 class="reveal-left d1">The database decides whether the machine should <span class="green">accept the order</span>.</h2>
+      <div class="kicker reveal-left">3. Ingredient & Inventory Database</div>
+      <h2 class="reveal-left d1">The database decides whether the machine should <span class="green pulse">accept the order</span>.</h2>
       <div class="grid">
-        <div class="panel reveal d2" style="--accent:var(--nv)"><h3>1. Pre-purchase</h3><p>Check recipes, ingredients, and supplies before payment.</p></div>
-        <div class="panel reveal d3" style="--accent:var(--gold)"><h3>2. Purchase</h3><p>Payment time limit, proof-of-purchase identifier, transaction record.</p></div>
-        <div class="panel reveal d4" style="--accent:var(--sky)"><h3>3. Post-purchase</h3><p>Fetch recipe, update stock, sync server, hide unavailable drinks.</p></div>
+        <div class="panel reveal d2" style="--accent:var(--nv)"><h3>1. Pre-Purchase</h3><p>Local database checks recipe, ingredients & supplies. If insufficient, displays "cannot be made" and signals the server it needs restocking.</p></div>
+        <div class="panel reveal d3" style="--accent:var(--gold)"><h3>2. Purchase</h3><p>Payment with a time limit produces a Proof-of-Purchase (POP) ID on success; the transaction record is stored online — otherwise the order is nulled.</p></div>
+        <div class="panel reveal d4" style="--accent:var(--sky)"><h3>3. Post-Purchase</h3><p>Recipe fetched from server, drink made, stock updated. If ingredients now run low, system requests restock and hides affected drinks.</p></div>
       </div>
-      <p class="reveal d5">Local database and online server work together to keep recipes, stock, machine health, and restock signals current.</p>
-      <div class="footer"><span>Adelaine Tee CST2604081</span><span>Ingredient & Inventory Database</span></div>
+      <p class="reveal d5">Figure 3 (Data Flow Diagram): Customer → Places order → Local Database checks ingredients → syncs to Server; Payment → POP produced → Makes ordered beverages → updates ingredient stock.</p>
+      <div class="footer"><span>Adelaine Tee · CST2604081 — Ingredient & Inventory Database</span><span>Sections 3.1 – 3.3 · Local DB ↔ Cloud Server</span></div>
     </section>
 
+    <!-- 9. INTERFACE -->
     <section class="slide" data-title="Interface">
-      <div class="kicker reveal-left">Touch Interface</div>
-      <h2 class="reveal-left d1">A touch UI turns a complex machine into <span class="purple">simple customer steps</span>.</h2>
-      <div class="flow six reveal d2">
-        <div class="node" style="--accent:var(--sky)"><h3>Select</h3><p>Choose drink.</p></div>
-        <div class="node" style="--accent:var(--purple)"><h3>Customize</h3><p>Sugar, ice, caffeine.</p></div>
-        <div class="node" style="--accent:var(--nv)"><h3>Confirm</h3><p>Review order.</p></div>
-        <div class="node" style="--accent:var(--gold)"><h3>Pay</h3><p>Timed transaction.</p></div>
-        <div class="node" style="--accent:var(--nv)"><h3>Prepare</h3><p>Pump, heat, grind.</p></div>
-        <div class="node" style="--accent:var(--sky)"><h3>Finish</h3><p>Serve and update stock.</p></div>
+      <div class="kicker reveal-left">4. Step-by-Step Logic & Interface</div>
+      <h2 class="reveal-left d1">A touch UI turns a complex machine into <span class="purple pulse">simple customer steps</span>.</h2>
+      <p class="reveal d2">Direct interaction via tapping, swiping, pinching, spreading, and long-pressing — reducing confusion, speeding up ordering, and supporting remote monitoring, software updates, and digital advertising.</p>
+      <div class="flow six reveal d3">
+        <div class="node" style="--accent:var(--sky)"><h3>Select Drink</h3><p>Choose item from menu.</p></div>
+        <div class="node" style="--accent:var(--purple)"><h3>Customise</h3><p>Heat / ice, milk type, shots, toppings, syrup, drizzle, cream.</p></div>
+        <div class="node" style="--accent:var(--nv)"><h3>Check Stock</h3><p>Online recipe + local ingredient check.</p></div>
+        <div class="node" style="--accent:var(--gold)"><h3>Pay</h3><p>Timed payment; cancel if it fails.</p></div>
+        <div class="node" style="--accent:var(--nv)"><h3>Prepare</h3><p>Store transaction, begin preparing order.</p></div>
+        <div class="node" style="--accent:var(--sky)"><h3>Finish & Restock Check</h3><p>Verify ingredients for next order; request restock if low.</p></div>
       </div>
-      <div class="footer"><span>Chikondi Banda CST2604610</span><span>Step-by-Step Logic & Interface</span></div>
+      <div class="footer"><span>Chikondi Banda · CST2604610 — Step-by-Step Logic & Interface</span><span>Figure 4 · UI & Beverage Preparation Logic Flow</span></div>
     </section>
 
+    <!-- 10. JOURNEY / VERDICT -->
     <section class="slide" data-title="Journey">
-      <div class="kicker reveal-left">End-to-End Order</div>
-      <h2 class="reveal-left d1">One drink order activates <span class="green">every module</span> in sequence.</h2>
+      <div class="kicker reveal-left">Integrated System Story</div>
+      <h2 class="reveal-left d1">One drink order activates <span class="green pulse">every module</span> in sequence.</h2>
       <div class="flow six reveal d2">
-        <div class="node" style="--accent:var(--nv)"><h3>Customer</h3><p>Selects and customizes.</p></div>
+        <div class="node" style="--accent:var(--nv)"><h3>Customer</h3><p>Selects and customises.</p></div>
         <div class="node" style="--accent:var(--sky)"><h3>Database</h3><p>Checks stock first.</p></div>
-        <div class="node" style="--accent:var(--gold)"><h3>TCP Payment</h3><p>Confirms transaction.</p></div>
+        <div class="node" style="--accent:var(--gold)"><h3>TCP Payment</h3><p>Confirms transaction reliably.</p></div>
         <div class="node" style="--accent:var(--purple)"><h3>CPU + MCU</h3><p>Coordinates preparation.</p></div>
-        <div class="node" style="--accent:var(--nv)"><h3>Sensors</h3><p>Verify temperature and weight.</p></div>
+        <div class="node" style="--accent:var(--nv)"><h3>Sensors</h3><p>Verify temperature & weight.</p></div>
         <div class="node" style="--accent:var(--sky)"><h3>Cloud</h3><p>Receives sales, stock, health.</p></div>
       </div>
-      <p class="reveal d4">Presentation message: the report is not four separate topics. It is one feedback loop from user choice to machine control to cloud monitoring.</p>
-      <div class="footer"><span>Team 8 | CST104</span><span>Integrated system story</span></div>
+      <p class="reveal d4">This report is not four separate topics — it is <span class="gold pulse">one feedback loop</span> from user choice, to machine control, to AI-assisted backend monitoring.</p>
+      <div class="grid four reveal d5">
+        <div class="panel" style="--accent:var(--nv)"><h3>Reliable</h3><p>TCP protects payment & database transactions.</p></div>
+        <div class="panel" style="--accent:var(--sky)"><h3>Adaptive</h3><p>AI forecasts stock & predicts pump maintenance.</p></div>
+        <div class="panel" style="--accent:var(--gold)"><h3>Consistent</h3><p>Sensors close the loop on temperature, weight & stock.</p></div>
+        <div class="panel" style="--accent:var(--purple)"><h3>Usable</h3><p>Touch UI guides the customer start to finish.</p></div>
+      </div>
+      <div class="footer"><span>Team 8 | CST104 — Integrated system story</span><span>Final Verdict · Reliable, Adaptive, Consistent, Usable</span></div>
     </section>
 
-    <section class="slide" data-title="Verdict">
-      <div class="kicker reveal-left">Final Verdict</div>
-      <h2 class="reveal-left d1">A strong vending design is <span class="green">reliable</span>, <span class="blue">adaptive</span>, and easy to use.</h2>
-      <div class="grid four reveal d2">
-        <div class="panel" style="--accent:var(--nv)"><h3>Reliable</h3><p>TCP protects payment and database transactions.</p></div>
-        <div class="panel" style="--accent:var(--sky)"><h3>Adaptive</h3><p>AI forecasts stock and predicts pump maintenance.</p></div>
-        <div class="panel" style="--accent:var(--gold)"><h3>Consistent</h3><p>Sensors close the loop on temperature, weight, and stock.</p></div>
-        <div class="panel" style="--accent:var(--purple)"><h3>Usable</h3><p>Touch UI guides the customer from choice to finished drink.</p></div>
+    <!-- 11. TEAM / RESPONSIBILITIES -->
+    <section class="slide" data-title="Team">
+      <div class="kicker reveal-left">Team Members & Responsibilities</div>
+      <h2 class="reveal-left d1">Five modules, <span class="green pulse">one integrated system</span>.</h2>
+      <div class="grid five reveal d2">
+        <div class="panel" style="--accent:var(--nv)"><h3>Gan Yujie</h3><p><span class="tag green" style="color:var(--nv)">MBT2509003</span><br>Hardware Control</p></div>
+        <div class="panel" style="--accent:var(--sky)"><h3>Du Weichen</h3><p><span class="tag blue" style="color:var(--sky)">MEC2509004</span><br>AI Selection</p></div>
+        <div class="panel" style="--accent:var(--gold)"><h3>Wallace Chan</h3><p><span class="tag gold" style="color:var(--gold)">CST2604087</span><br>Network Protocols</p></div>
+        <div class="panel" style="--accent:var(--purple)"><h3>Adelaine Tee</h3><p><span class="tag purple" style="color:var(--purple)">CST2604081</span><br>Database</p></div>
+        <div class="panel" style="--accent:var(--red)"><h3>Chikondi Banda</h3><p><span class="tag red" style="color:var(--red)">CST2604610</span><br>Interface Logic</p></div>
       </div>
-      <p class="reveal d4">Sources used: Team8 assignment report and its cited references.</p>
-      <div class="footer"><span>Team 8 | CST104</span><span>Ready for 15-minute presentation and Q&A</span></div>
+      <p class="reveal d4" style="margin-top:40px;">Thank you</p>
+      <div class="footer"><span>Team 8 | CST104 Introduction to Computer Science and Technology</span><span>Assignment · Academic Session 2026/04</span></div>
     </section>
+
   </main>
 
   <script>
@@ -475,6 +596,104 @@
       }
     });
     setActive();
+
+    /* ---- Typewriter title with typing sound ---- */
+    (function () {
+      const line1 = document.getElementById("tw-line1");
+      const line2 = document.getElementById("tw-line2");
+      const line3 = document.getElementById("tw-line3");
+      if (!line1 || !line2 || !line3) return;
+
+      const lines = [
+        [ { text: "AUTOMATED", cls: null } ],
+        [ { text: "BEVERAGE", cls: "green" } ],
+        [ { text: "VENDING MACHINE", cls: "blue" } ]
+      ];
+      const lineEls = [line1, line2, line3];
+
+      let audioCtx = null;
+      function beep() {
+        try {
+          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "square";
+          osc.frequency.value = 920 + Math.random() * 140;
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          const now = audioCtx.currentTime;
+          gain.gain.setValueAtTime(0.07, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        } catch (e) { /* audio not available */ }
+      }
+
+      const cursor = document.createElement("span");
+      cursor.className = "tw-cursor";
+      lineEls[0].appendChild(cursor);
+
+      let lineIdx = 0, segIdx = 0, charIdx = 0;
+      let currentSpan = null;
+
+      function step() {
+        if (lineIdx >= lines.length) {
+          setTimeout(() => { cursor.classList.add("tw-done"); }, 1400);
+          return;
+        }
+        const segs = lines[lineIdx];
+        if (segIdx >= segs.length) {
+          lineIdx++; segIdx = 0; charIdx = 0; currentSpan = null;
+          if (lineIdx < lines.length) {
+            lineEls[lineIdx].appendChild(cursor);
+            setTimeout(step, 260); // small pause before next line
+          } else {
+            step();
+          }
+          return;
+        }
+        const seg = segs[segIdx];
+        const lineEl = lineEls[lineIdx];
+
+        if (charIdx === 0) {
+          if (seg.cls) {
+            currentSpan = document.createElement("span");
+            currentSpan.className = seg.cls;
+            lineEl.insertBefore(currentSpan, cursor);
+          } else {
+            currentSpan = null;
+          }
+        }
+
+        const ch = seg.text[charIdx];
+        if (currentSpan) {
+          currentSpan.textContent += ch;
+        } else {
+          lineEl.insertBefore(document.createTextNode(ch), cursor);
+        }
+
+        if (ch !== " ") beep();
+
+        charIdx++;
+        if (charIdx >= seg.text.length) {
+          segIdx++; charIdx = 0;
+        }
+
+        const delay = ch === " " ? 90 : 55 + Math.random() * 55;
+        setTimeout(step, delay);
+      }
+
+      let started = false;
+      function tryStart() {
+        if (started) return;
+        started = true;
+        setTimeout(step, 700);
+      }
+      if (slides[0].classList.contains("active")) tryStart();
+      window.addEventListener("scroll", tryStart, { once: true });
+      window.addEventListener("keydown", tryStart, { once: true });
+      window.addEventListener("click", tryStart, { once: true });
+    })();
   </script>
 </body>
 </html>
