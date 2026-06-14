@@ -99,6 +99,21 @@
 
         /* sweep animation is now injected dynamically by JS with random direction */
 
+        /* ── Scrollbar styling ── */
+        .deck::-webkit-scrollbar {
+            width: 3px;
+        }
+        .deck::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .deck::-webkit-scrollbar-thumb {
+            background: rgba(118, 185, 0, 0.35);
+            border-radius: 2px;
+        }
+        .deck::-webkit-scrollbar-thumb:hover {
+            background: rgba(118, 185, 0, 0.65);
+        }
+
         .kicker {
             display: flex;
             align-items: center;
@@ -1841,6 +1856,9 @@
             void slide.offsetWidth; // reflow
             slide.classList.add('slide-sweeping');
             setTimeout(() => slide.classList.remove('slide-sweeping'), 2700);
+
+            // trigger particle brightness flash in sync with sweep
+            if (typeof window._particleSweepFlash === 'function') window._particleSweepFlash();
         }
 
         let lastActiveIndex = -1;
@@ -1868,6 +1886,8 @@
             }
         });
         setActive();
+        // first slide entrance sweep — delayed so typewriter & reveal animations settle first
+        setTimeout(() => fireSweep(slides[0]), 900);
 
         (function setupQR() {
             const img = document.getElementById('qrImg');
@@ -2066,6 +2086,12 @@
         window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
         window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
 
+        /* ── sweep flash state (triggered externally by fireSweep) ── */
+        let sweepFlash = 0; // 0~1, decays each frame
+
+        // expose so fireSweep() can trigger it
+        window._particleSweepFlash = function() { sweepFlash = 1; };
+
         /* ──────────────────────────────────────────
            STARS / SPARKLES layer
         ────────────────────────────────────────── */
@@ -2087,12 +2113,15 @@
         initStars();
 
         function drawStars() {
+            const boost = sweepFlash * 0.55; // stars get brighter during sweep
             stars.forEach(s => {
                 s.alpha += s.delta;
                 if (s.alpha <= 0 || s.alpha >= 1) { s.delta *= -1; s.alpha = Math.max(0, Math.min(1, s.alpha)); }
+                const a = Math.min(1, s.alpha * 0.7 + boost);
+                const r = s.r * (1 + boost * 0.8); // slightly larger during flash
                 ctx.beginPath();
-                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(${s.col},${s.alpha * 0.7})`;
+                ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${s.col},${a})`;
                 ctx.fill();
             });
         }
@@ -2121,9 +2150,12 @@
                 if (this.y < -10 || this.y > canvas.height + 10) this.dy *= -1;
             }
             draw() {
+                const boost = sweepFlash * 0.45;
+                const a = Math.min(1, this.alpha + boost);
+                const r = this.size * (1 + boost * 0.6);
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(${this.baseCol},${this.alpha})`;
+                ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${this.baseCol},${a})`;
                 ctx.fill();
             }
         }
@@ -2136,6 +2168,7 @@
         initParticles();
 
         function connectParticles() {
+            const flashBoost = sweepFlash * 0.4;
             const maxDistSq = (Math.min(canvas.width, canvas.height) * 0.135) ** 2;
             for (let a = 0; a < particles.length; a++) {
                 for (let b = a + 1; b < particles.length; b++) {
@@ -2144,8 +2177,13 @@
                     const d2 = dx * dx + dy * dy;
                     if (d2 < maxDistSq) {
                         const t = 1 - d2 / maxDistSq;
-                        ctx.strokeStyle = `rgba(71,85,105,${t * 0.5})`;
-                        ctx.lineWidth = 0.7;
+                        const lineAlpha = Math.min(1, t * 0.5 + flashBoost * t);
+                        // during sweep flash, lines shift toward nv-green
+                        const col = sweepFlash > 0.1
+                            ? `rgba(118,185,0,${lineAlpha})`
+                            : `rgba(71,85,105,${lineAlpha})`;
+                        ctx.strokeStyle = col;
+                        ctx.lineWidth = 0.7 + flashBoost * 0.8;
                         ctx.beginPath();
                         ctx.moveTo(particles[a].x, particles[a].y);
                         ctx.lineTo(particles[b].x, particles[b].y);
@@ -2187,6 +2225,8 @@
         function animate() {
             requestAnimationFrame(animate);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // decay sweep flash gradually over ~1.2s
+            if (sweepFlash > 0) sweepFlash = Math.max(0, sweepFlash - 0.014);
             drawStars();
             particles.forEach(p => { p.update(); p.draw(); });
             connectParticles();
