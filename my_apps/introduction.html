@@ -45,8 +45,10 @@
                 linear-gradient(0deg, rgba(56, 189, 248, .08) 1px, transparent 1px) 0 0 / 92px 92px,
                 radial-gradient(circle at 80% 15%, rgba(118, 185, 0, .22), transparent 30%),
                 radial-gradient(circle at 18% 82%, rgba(0, 113, 197, .28), transparent 32%),
-                #020205;
+                rgba(2, 2, 5, 0.0);
             animation: gridDrift 38s linear infinite;
+            position: relative;
+            z-index: 1;
         }
 
         @keyframes gridDrift {
@@ -95,29 +97,7 @@
             opacity: 0;
         }
 
-        .slide.active::after {
-            animation: sweep 2.6s ease-out 1;
-        }
-
-        @keyframes sweep {
-            0% {
-                opacity: 0;
-                left: -40%;
-            }
-
-            15% {
-                opacity: 1;
-            }
-
-            60% {
-                opacity: .7;
-            }
-
-            100% {
-                opacity: 0;
-                left: 120%;
-            }
-        }
+        /* sweep animation is now injected dynamically by JS with random direction */
 
         .kicker {
             display: flex;
@@ -1290,6 +1270,17 @@
 </head>
 
 <body>
+    <!-- ═══════════════════════════════════════════
+         PARTICLE NETWORK CANVAS (background layer)
+    ═══════════════════════════════════════════ -->
+    <canvas id="particle-canvas" style="
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 0;
+    "></canvas>
+
     <div class="progress" id="progress"></div>
     <div class="dots" id="dots"></div>
     <div class="counter" id="counter">01 / 11</div>
@@ -1794,12 +1785,75 @@
         });
         const dotEls = [...document.querySelectorAll(".dot")];
 
+        /* ── Random-direction sweep light on slide change ── */
+        const sweepStyleEl = document.createElement('style');
+        document.head.appendChild(sweepStyleEl);
+        let sweepCounter = 0;
+
+        // Each preset defines the ::after element's start/end state and gradient angle
+        const sweepPresets = [
+            // left → right (original)
+            { grad: '100deg', fromCSS: 'top:0;left:-42%;width:42%;height:100%;transform:skewX(-12deg)',
+              toCSS:   'top:0;left:122%;width:42%;height:100%;transform:skewX(-12deg)' },
+            // right → left
+            { grad: '80deg',  fromCSS: 'top:0;right:-42%;left:auto;width:42%;height:100%;transform:skewX(12deg)',
+              toCSS:   'top:0;right:122%;left:auto;width:42%;height:100%;transform:skewX(12deg)' },
+            // top → bottom
+            { grad: '10deg',  fromCSS: 'left:0;top:-36%;width:100%;height:36%;transform:skewY(-6deg)',
+              toCSS:   'left:0;top:118%;width:100%;height:36%;transform:skewY(-6deg)' },
+            // bottom → top
+            { grad: '170deg', fromCSS: 'left:0;bottom:-36%;top:auto;width:100%;height:36%;transform:skewY(6deg)',
+              toCSS:   'left:0;bottom:118%;top:auto;width:100%;height:36%;transform:skewY(6deg)' },
+            // diagonal ↘ (top-left → bottom-right)
+            { grad: '135deg', fromCSS: 'top:-60%;left:-60%;width:80%;height:80%;transform:rotate(45deg)',
+              toCSS:   'top:80%;left:80%;width:80%;height:80%;transform:rotate(45deg)' },
+            // diagonal ↗ (bottom-left → top-right)
+            { grad: '45deg',  fromCSS: 'bottom:-60%;left:-60%;top:auto;width:80%;height:80%;transform:rotate(-45deg)',
+              toCSS:   'bottom:80%;left:80%;top:auto;width:80%;height:80%;transform:rotate(-45deg)' },
+        ];
+
+        let lastPresetIdx = -1;
+        function fireSweep(slide) {
+            // pick a direction different from the last one
+            let idx;
+            do { idx = Math.floor(Math.random() * sweepPresets.length); } while (idx === lastPresetIdx);
+            lastPresetIdx = idx;
+            const p = sweepPresets[idx];
+            const animName = `sweep_${++sweepCounter}`;
+
+            // inject keyframes
+            sweepStyleEl.textContent = `
+                @keyframes ${animName} {
+                    0%   { opacity:0; ${p.fromCSS} }
+                    15%  { opacity:1; ${p.fromCSS} }
+                    60%  { opacity:.7; }
+                    100% { opacity:0; ${p.toCSS} }
+                }
+                .slide-sweeping::after {
+                    background: linear-gradient(${p.grad}, transparent, rgba(118,185,0,.10) 45%, rgba(56,189,248,.14) 55%, transparent) !important;
+                    animation: ${animName} 2.6s ease-out 1 forwards !important;
+                    opacity: 0;
+                }
+            `;
+
+            // remove any old sweep class, force reflow, add new one
+            slide.classList.remove('slide-sweeping');
+            void slide.offsetWidth; // reflow
+            slide.classList.add('slide-sweeping');
+            setTimeout(() => slide.classList.remove('slide-sweeping'), 2700);
+        }
+
+        let lastActiveIndex = -1;
         function setActive() {
             const index = Math.round(deck.scrollTop / window.innerHeight);
             slides.forEach((s, i) => s.classList.toggle("active", i === index));
             dotEls.forEach((d, i) => d.classList.toggle("active", i === index));
             counter.textContent = `${String(index + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}`;
             progress.style.width = `${((index + 1) / slides.length) * 100}%`;
+            if (index !== lastActiveIndex) {
+                lastActiveIndex = index;
+                fireSweep(slides[index]);
+            }
         }
         deck.addEventListener("scroll", setActive, { passive: true });
         window.addEventListener("keydown", (e) => {
@@ -1990,6 +2044,155 @@
             /* Start immediately — no waiting for user interaction */
             setTimeout(step, 700);
         })();
+
+    /* ══════════════════════════════════════════════════════════
+       PARTICLE NETWORK + STARFIELD BACKGROUND
+       – Adapted from index.html background canvas effect
+       – Runs behind all content (z-index: 0, pointer-events: none)
+    ══════════════════════════════════════════════════════════ */
+    (function initParticleBackground() {
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', () => { resize(); initParticles(); initStars(); });
+
+        /* ── mouse tracking (pointer-events disabled on canvas, tracked on window) ── */
+        const mouse = { x: null, y: null, radius: 180 };
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
+
+        /* ──────────────────────────────────────────
+           STARS / SPARKLES layer
+        ────────────────────────────────────────── */
+        let stars = [];
+        function initStars() {
+            stars = [];
+            const count = Math.floor((canvas.width * canvas.height) / 5500);
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 1.3 + 0.15,
+                    alpha: Math.random(),
+                    delta: (Math.random() * 0.014 + 0.004) * (Math.random() < 0.5 ? 1 : -1),
+                    col: ['255,255,255','118,185,0','56,189,248','168,85,247','245,158,11'][Math.floor(Math.random()*5)]
+                });
+            }
+        }
+        initStars();
+
+        function drawStars() {
+            stars.forEach(s => {
+                s.alpha += s.delta;
+                if (s.alpha <= 0 || s.alpha >= 1) { s.delta *= -1; s.alpha = Math.max(0, Math.min(1, s.alpha)); }
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${s.col},${s.alpha * 0.7})`;
+                ctx.fill();
+            });
+        }
+
+        /* ──────────────────────────────────────────
+           NETWORK PARTICLES layer
+        ────────────────────────────────────────── */
+        let particles = [];
+
+        class Particle {
+            constructor() { this.reset(true); }
+            reset(randomY = false) {
+                this.x  = Math.random() * canvas.width;
+                this.y  = randomY ? Math.random() * canvas.height : Math.random() * canvas.height;
+                this.dx = (Math.random() - 0.5) * 0.55;
+                this.dy = (Math.random() - 0.5) * 0.55;
+                this.size = Math.random() * 1.6 + 0.4;
+                const cols = ['118,185,0','56,189,248','168,85,247','100,116,139','163,217,0'];
+                this.baseCol = cols[Math.floor(Math.random() * cols.length)];
+                this.alpha = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.dx;
+                this.y += this.dy;
+                if (this.x < -10 || this.x > canvas.width  + 10) this.dx *= -1;
+                if (this.y < -10 || this.y > canvas.height + 10) this.dy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${this.baseCol},${this.alpha})`;
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            const count = Math.floor((canvas.width * canvas.height) / 12000);
+            particles = [];
+            for (let i = 0; i < count; i++) particles.push(new Particle());
+        }
+        initParticles();
+
+        function connectParticles() {
+            const maxDistSq = (Math.min(canvas.width, canvas.height) * 0.135) ** 2;
+            for (let a = 0; a < particles.length; a++) {
+                for (let b = a + 1; b < particles.length; b++) {
+                    const dx = particles[a].x - particles[b].x;
+                    const dy = particles[a].y - particles[b].y;
+                    const d2 = dx * dx + dy * dy;
+                    if (d2 < maxDistSq) {
+                        const t = 1 - d2 / maxDistSq;
+                        ctx.strokeStyle = `rgba(71,85,105,${t * 0.5})`;
+                        ctx.lineWidth = 0.7;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[a].x, particles[a].y);
+                        ctx.lineTo(particles[b].x, particles[b].y);
+                        ctx.stroke();
+                    }
+                }
+
+                /* glow lines to cursor */
+                if (mouse.x !== null) {
+                    const mdx = mouse.x - particles[a].x;
+                    const mdy = mouse.y - particles[a].y;
+                    const md2 = mdx * mdx + mdy * mdy;
+                    const mouseR2 = mouse.radius * mouse.radius;
+                    if (md2 < mouseR2) {
+                        const op = (1 - md2 / mouseR2);
+                        ctx.strokeStyle = `rgba(118,185,0,${op * 0.95})`;
+                        ctx.lineWidth = 1.8 * op + 0.3;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[a].x, particles[a].y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            /* cursor glow halo */
+            if (mouse.x !== null) {
+                const grd = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 60);
+                grd.addColorStop(0, 'rgba(118,185,0,0.07)');
+                grd.addColorStop(0.5, 'rgba(56,189,248,0.04)');
+                grd.addColorStop(1, 'rgba(118,185,0,0)');
+                ctx.fillStyle = grd;
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, 60, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawStars();
+            particles.forEach(p => { p.update(); p.draw(); });
+            connectParticles();
+        }
+        animate();
+    })();
     </script>
 </body>
 
