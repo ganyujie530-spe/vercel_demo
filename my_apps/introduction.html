@@ -387,12 +387,61 @@
             background: rgba(255, 255, 255, .2);
             cursor: pointer;
             transition: .25s ease;
+            position: relative;
+        }
+
+        /* tooltip label sliding in from right */
+        .dot::before {
+            content: attr(data-label);
+            position: absolute;
+            right: 22px;
+            top: 50%;
+            transform: translateY(-50%) translateX(6px);
+            white-space: nowrap;
+            font: 700 11px/1 "Bahnschrift", "Segoe UI", sans-serif;
+            letter-spacing: .12em;
+            color: var(--nv);
+            background: rgba(2, 2, 5, .82);
+            border: 1px solid rgba(118, 185, 0, .35);
+            border-radius: 6px;
+            padding: 5px 10px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease, transform .2s ease;
+            text-shadow: 0 0 10px rgba(118, 185, 0, .6);
+        }
+
+        .dot:hover::before {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
         }
 
         .dot.active {
             background: var(--nv);
             box-shadow: 0 0 18px var(--nv);
             transform: scale(1.5);
+        }
+
+        /* keyboard feedback — progress bar flash */
+        .progress.key-flash {
+            animation: progressFlash .35s ease-out 1;
+        }
+
+        @keyframes progressFlash {
+            0%   { box-shadow: 0 0 22px var(--nv); filter: brightness(1); }
+            35%  { box-shadow: 0 0 48px var(--nv), 0 0 80px var(--sky); filter: brightness(2.2); }
+            100% { box-shadow: 0 0 22px var(--nv); filter: brightness(1); }
+        }
+
+        /* active dot bounce on keypress */
+        .dot.key-bounce {
+            animation: dotBounce .32s cubic-bezier(.36, 1.6, .64, 1) 1;
+        }
+
+        @keyframes dotBounce {
+            0%   { transform: scale(1.5); }
+            45%  { transform: scale(2.1); }
+            100% { transform: scale(1.5); }
         }
 
         .reveal,
@@ -1794,7 +1843,9 @@
         slides.forEach((slide, i) => {
             const dot = document.createElement("button");
             dot.className = "dot";
+            const label = `${String(i + 1).padStart(2, "0")}  ${slide.dataset.title || ''}`;
             dot.title = `Slide ${i + 1}: ${slide.dataset.title}`;
+            dot.setAttribute('data-label', label);
             dot.addEventListener("click", () => slide.scrollIntoView({ behavior: "smooth" }));
             dots.appendChild(dot);
         });
@@ -1874,15 +1925,34 @@
             }
         }
         deck.addEventListener("scroll", setActive, { passive: true });
+
+        function triggerKeyFeedback() {
+            // progress bar flash
+            progress.classList.remove('key-flash');
+            void progress.offsetWidth;
+            progress.classList.add('key-flash');
+            setTimeout(() => progress.classList.remove('key-flash'), 360);
+            // active dot bounce
+            const activeDot = dotEls.find(d => d.classList.contains('active'));
+            if (activeDot) {
+                activeDot.classList.remove('key-bounce');
+                void activeDot.offsetWidth;
+                activeDot.classList.add('key-bounce');
+                setTimeout(() => activeDot.classList.remove('key-bounce'), 340);
+            }
+        }
+
         window.addEventListener("keydown", (e) => {
             const i = Math.round(deck.scrollTop / window.innerHeight);
             if (["ArrowDown", "PageDown", " "].includes(e.key)) {
                 e.preventDefault();
                 slides[Math.min(i + 1, slides.length - 1)].scrollIntoView({ behavior: "smooth" });
+                triggerKeyFeedback();
             }
             if (["ArrowUp", "PageUp"].includes(e.key)) {
                 e.preventDefault();
                 slides[Math.max(i - 1, 0)].scrollIntoView({ behavior: "smooth" });
+                triggerKeyFeedback();
             }
         });
         setActive();
